@@ -1,0 +1,1459 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Akıllı Oyun">
+    <link rel="manifest" href="/manifest.json">
+    <title>Mega Aile Oyunu - Pro Max Sesli</title>
+    <style>
+        .satis-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.9);
+    display: none; flex-direction: column; align-items: center; justify-content: center;
+    z-index: 2000; padding: 30px; text-align: center;
+}
+.iban-kutu {
+    background: #1e293b; padding: 20px; border-radius: 20px;
+    border: 2px solid var(--accent); margin: 15px 0; width: 100%;
+}
+        :root {
+            --bg: #0f172a; --card: #1e293b; --text: #f8f9fa;
+            --primary: #e94560; --win: #10b981; --loss: #ef4444; --accent: #f59e0b;
+            --info: #3b82f6; --radius: 20px;
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        .header { padding: 15px; background: var(--card); display: flex; justify-content: center; box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
+        #aktifSira { padding: 12px 35px; border-radius: 50px; font-weight: 800; text-transform: uppercase; border: 2px solid rgba(255,255,255,0.1); }
+        .oyun-alani { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; padding: 20px; max-width: 500px; margin: 0 auto; width: 100%; box-sizing: border-box; height: 70vh; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
+        .kare { aspect-ratio: 1/1; background: var(--card); border: 1.5px solid rgba(255,255,255,0.1); color: #fff; font-size: 1.2rem; font-weight: bold; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
+        .kare:active { transform: scale(0.9); background: var(--primary); }
+        #maske { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.96); z-index: 1000; backdrop-filter: blur(12px); }
+        #modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 92%; max-width: 400px; background: var(--card); padding: 25px; border-radius: 30px; text-align: center; z-index: 1001; max-height: 88vh; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1); }
+        .aksiyon { padding: 16px; border: none; border-radius: var(--radius); cursor: pointer; font-weight: 700; margin: 6px 0; font-size: 1rem; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-gor { background: var(--info); color: white; }
+        .btn-win { background: var(--win); color: white; flex: 1; }
+        .btn-loss { background: var(--loss); color: white; flex: 1; }
+        #kelime-kutusu { display: none; flex-direction: column; align-items: center; background: rgba(0,0,0,0.3); padding: 20px; border-radius: 25px; margin: 15px 0; }
+        #resimAlani { width: 100%; min-height: 120px; margin-bottom: 10px; display: flex; justify-content: center; align-items: center; }
+        #resimAlani img { max-width: 100%; max-height: 180px; border-radius: 15px; object-fit: contain; }
+        #sayac { font-size: 4rem; font-weight: 900; color: var(--primary); margin: 5px 0; }
+        #zar-konteynir { margin: 15px 0; padding: 15px; border-radius: 20px; background: rgba(245, 158, 11, 0.15); border: 1.5px solid var(--accent); }
+        #zar-sonuc { font-size: 5rem; display: block; margin-bottom: 10px; }
+        .zar-don { animation: spin 0.6s infinite linear; }
+        @keyframes spin { from {transform: rotate(0deg);} to {transform: rotate(360deg);} }
+        #sonucEkran { display: none; padding: 18px; font-weight: 800; color: var(--accent); background: rgba(245, 158, 11, 0.1); border-radius: 20px; margin: 10px 0; }
+    /* Resim yüklenemezse veya hata verirse alanı tamamen gizle */
+    #resimAlani img:not([src]), 
+    #resimAlani img[src=""] {
+        display: none !important;
+    }
+
+    #resimAlani img {
+        /* Eğer resim bozuksa kullanıcıya gösterme */
+        -moz-force-broken-image-icon: 0;
+    }
+    </style>
+</head>
+<body>
+<div id="satisEkran" class="satis-overlay">
+    <h2 style="color: var(--accent); font-weight: 900;">🔓 EŞLİ MOD PAKETİ</h2>
+    <p style="font-size: 0.9rem; opacity: 0.9;">Bu paket 40+ özel görev içerir. Aktivasyon ücreti: <b style="font-size: 1.2rem; color: #fff;">100 TL</b></p>
+   
+    <div class="iban-kutu" style="background: rgba(0,0,0,0.4); padding: 15px; border-radius: 15px; margin: 15px 0; text-align: left; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.1); cursor: pointer;" onclick="navigator.clipboard.writeText('TR00 0000 0000 0000 0000 0000 00'); alert('IBAN Kopyalandı!');">
+        <b style="color: var(--accent);">BANKA BİLGİLERİ:</b><br>
+        <b>ALICI:</b> MUHAMMED MUSTAFA KARAOĞLU<br>
+        <b>IBAN:</b> <span id="ibanNo">TR00 0000 0000 0000 0000 0000 00</span><br>
+        <small style="opacity: 0.6;">(IBAN'a dokunarak kopyalayabilirsiniz)</small>
+    </div>
+
+    <a href="https://wa.me/905548147163?text=Merhaba,%20Akilli%20Kutu%20Oyunu%20Esli%20Mod%20icin%20odeme%20yaptim,%20dekontum%20ektedir."
+       target="_blank"
+       style="display: block; background: #25D366; color: white; text-decoration: none; padding: 15px; border-radius: 15px; font-weight: bold; margin-bottom: 10px; font-size: 0.9rem; text-align: center;">
+       ✅ ÖDEME YAPTIM / DEKONT GÖNDER
+    </a>
+
+    <button class="aksiyon" onclick="paketiAktiveEt()" style="background: var(--accent); color: white; margin-bottom: 10px; width: 100%; border: none; padding: 15px; border-radius: 15px; font-weight: bold; cursor: pointer;">
+        🔑 KODU GİR VE AKTİVE ET
+    </button>
+   
+    <button onclick="document.getElementById('satisEkran').style.display='none'" style="background: none; border: none; color: #fff; opacity: 0.5; cursor: pointer; font-size: 0.8rem; width: 100%;">Vazgeç, Sonra Yaparım</button>
+</div>
+<div class="header"><div id="aktifSira">YÜKLENİYOR...</div></div>
+<div class="oyun-alani" id="oyunAlani"></div>
+
+<div id="maske"></div>
+<div id="modal">
+    <div id="mOyuncu" style="font-weight: 800; font-size: 0.8rem; letter-spacing: 2px; opacity: 0.7;">OYUNCU</div>
+    <div id="mGorev" style="font-size: 1.4rem; font-weight: 700; margin: 15px 0;">GÖREV</div>
+
+    <button class="aksiyon btn-gor" id="btnGor" onclick="kelimeyiAc()">👁️ GÖREVİ GÖR</button>
+    <div id="kelime-kutusu"></div>
+    <div id="sayac"></div>
+    <button id="btnBasla" class="aksiyon" onclick="sayaciBaslat()" style="display:none; background: var(--win); color:white;">▶️ SÜREYİ BAŞLAT</button>
+   
+    <div id="kararGrubu" style="display:none; gap: 10px; width: 100%;">
+        <button class="btn-win aksiyon" onclick="kararVer(true)">BAŞARILI ✅</button>
+        <button class="btn-loss aksiyon" onclick="kararVer(false)">BAŞARISIZ ❌</button>
+    </div>
+
+    <div id="zar-konteynir" style="display:none;">
+        <div id="zar-sonuc">🎲</div>
+        <button class="aksiyon" onclick="zarAt()" style="background:var(--accent); color:#000;">ZAR AT</button>
+    </div>
+
+    <div id="sonucEkran"></div>
+   
+    <div id="altKontrol" style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
+        <button id="btnSiradaki" class="aksiyon" onclick="kapatVeGec()" style="display:none; background:var(--info); color: white;">SIRADAKİ OYUNCU ➡️</button>
+        <div style="display: flex; gap: 8px;">
+            <button class="aksiyon" onclick="goreviTekrarla()" style="background:#334155; font-size: 0.8rem; flex: 1;">🔄 TEKRARLA</button>
+            <button class="aksiyon" onclick="gorevdenCik()" style="background:#334155; font-size: 0.8rem; flex: 1;">❌ KAPAT</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("click", () => {
+    if (window.audioCtx && window.audioCtx.state === "suspended") {
+        window.audioCtx.resume();
+    }
+}, { once: true });
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js')
+      .then(() => console.log("Çevrimdışı mod hazır!"))
+      .catch(err => console.log("Hata:", err));
+}
+// 1. ADIM: HATA YAKALAYICI
+window.onerror = function(msg, url, line) {
+    alert("Sistem Notu: " + msg + "\nSatır: " + line);
+    return false;
+};
+
+// 2. ADIM: DEĞİŞKENLER VE VERİ KONTROLÜ
+let kullanilmisKelimeler = JSON.parse(localStorage.getItem('kayitliHafiza')) || {};
+let oyuncular = [];
+let sira = 0, aktifVeri = null, zamanlayici = null, mevcutKelimeler = [], mevcutKelimeIndeksi = 0;
+let sayacDurduruldu = false; 
+let kalanSure = 0;
+let beepSesi = new Audio("sesler/beep.mp3");
+window.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+try {
+    const kayitli = localStorage.getItem('oyuncular');
+    if (kayitli) {
+        oyuncular = JSON.parse(kayitli);
+    } else {
+        oyuncular = [
+            {ad:"Oyuncu 1", yas:"4-5", renk:"#e94560"},
+            {ad:"Oyuncu 2", yas:"yetiskin", renk:"#3b82f6"}
+        ];
+    }
+} catch (e) {
+    oyuncular = [
+        {ad:"Oyuncu 1", yas:"4-5", renk:"#e94560"},
+        {ad:"Oyuncu 2", yas:"yetiskin", renk:"#3b82f6"}
+    ];
+}
+
+
+function sesliOku(metin, bittigindeYap = null) {
+
+    // Eğer önceki konuşma varsa durdur
+    window.speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(metin);
+
+    utterance.lang = "tr-TR"; // Türkçe okuma
+    utterance.rate = 1;       // hız (0.8 yavaş, 1 normal, 1.2 hızlı)
+    utterance.pitch = 1;      // ses tonu
+
+    if (bittigindeYap) {
+        utterance.onend = bittigindeYap;
+    }
+
+    window.speechSynthesis.speak(utterance);
+}
+
+
+// 3. ADIM: MOBİL UYUMLU BAŞLATICI
+function baslat() {
+    if (typeof kareleriOlustur === "function") { kareleriOlustur(); }
+    if (typeof siraGuncelle === "function") { siraGuncelle(); }
+}
+
+// Ses Uyandırma Fonksiyonu
+function sesUyandir() {
+    try {
+        const ut = new SpeechSynthesisUtterance('');
+        window.speechSynthesis.speak(ut);
+    } catch(e) {}
+}
+
+document.addEventListener('click', sesUyandir, { once: true });
+document.addEventListener('touchstart', sesUyandir, { once: true });
+
+if (document.readyState === 'complete') {
+    baslat();
+} else {
+    window.addEventListener('load', baslat);
+}
+
+
+const havuzlar = {
+    // --- STANDART ANLAT BAKALIM HAVUZLARI ---
+    "yetiskin": [
+    "Enflasyon", "Kripto Para", "Manipülasyon", "Nostalji", "İroni", 
+    "Paradoks", "Sürdürülebilirlik", "Algoritma", "Senaryo", "Kaos",
+    "Empati", "Deja Vu", "Strateji", "Bürokrasi", "Ego", "Sinerji", 
+    "Metabolizma", "Hipotez", "Klişe", "Referandum", "Kişisel Gelişim", 
+    "Minimalizm", "Psikoloji", "Konfor Alanı", "Mobbing", "Protokol", 
+    "Eksantrik", "Diplomasi", "İllüzyon", "Kriz Yönetimi", 
+    "Modernizm", "Melankoli", "Sübjektif", "Kolektif", "Otorite",
+    "Entelektüel", "Popülizm", "Yapay Zeka", "Narsisizm", "Farkındalık", 
+    "Kuşak Çatışması", "Devalüasyon", "Kariyer Basamağı", "Sermaye",
+    "İnisiyatif", "Kadercilik", "Metafor", "Asimilasyon", "Ekoloji",
+    "Tükenmişlik Sendromu", "Beyaz Yaka", "Network", "Lobi Faaliyeti", "Pazartesi Sendromu",
+    "Kira Sözleşmesi", "Emeklilik Hayali", "Asgari Ücret", "Vergi Dairesi", "Kredi Notu",
+    "Borsa İstanbul", "Yatırım Tavsiyesi", "Girişimcilik", "Toplantı Tutananağı", "Home Office",
+    "Sosyal Mesafe", "Dijital Göçmen", "Linç Kültürü", "Post-Modernizm", "Rehabilitasyon",
+    "Rant", "Fırsat Maliyeti", "Siyasi İstikrar", "Kayıt Dışı Ekonomi", "Demokrasi",
+    "Teşvik Paketi", "İhracat", "İthalat", "Hiyerarşi", "Mülkiyet Hakkı",
+    "Öz Eleştiri", "Analitik Düşünce", "Vizyon", "Misyon",
+    "Kriz Masası", "Etik Değerler", "Globalleşme", "Özelleştirme", "Sendika",
+    "Freelance", "Startup", "Kuluçka Merkezi", "Maliyet Analizi", "Ciro",
+    "Amortisman", "Tasfiye", "İflas", "Vekaletname", "Noter"
+],
+"esli_oyun": [
+    // Ortak Yaşam ve Alışkanlıklar
+    { k: "Sabah Uykusu", yasakli: ["Alarm", "Yatak", "Geç Kalmak", "Yastık", "Uyanmak"] },
+    { k: "Horlama", yasakli: ["Ses", "Gece", "Uyku", "Burun", "Yastık"] },
+    { k: "Dağınıklık", yasakli: ["Eşya", "Oda", "Toplamak", "Kıyafet", "Kirli"] },
+    { k: "Kredi Kartı Ekstresi", yasakli: ["Borç", "Banka", "Para", "Harcama", "Limit"] },
+    { k: "Kumanda Kavgası", yasakli: ["Televizyon", "Kanal", "Dizi", "Maç", "Değiştirmek"] },
+    { k: "Pazar Kahvaltısı", yasakli: ["Sucuk", "Yumurta", "Çay", "Keyif", "Gazete"] },
+    { k: "Yol Tarifi", yasakli: ["Navigasyon", "Sağ", "Sol", "Kaybolmak", "Harita"] },
+    { k: "Evlilik Yıldönümü", yasakli: ["Kutlama", "Hediye", "Tarih", "Yemek", "Nikah"] },
+    { k: "İlk Tanışma", yasakli: ["Görüşme", "Heyecan", "Nerede", "Randevu", "Restoran"] },
+    { k: "Mutfak Alışverişi", yasakli: ["Market", "Liste", "Poşet", "Sebze", "Meyve"] },
+
+    // İkili İlişkilere Dair Komik Durumlar
+    { k: "Dedikodu Yapmak", yasakli: ["Gıybet", "Konuşmak", "Arkadaş", "Anlatmak", "Sır"] },
+    { k: "Trip Atmak", yasakli: ["Kıskanmak", "Küsmek", "Konuşmamak", "Surat", "Naza Çekmek"] },
+    { k: "Görüldü Atmak", yasakli: ["Mesaj", "WhatsApp", "Cevap", "Mavi Tık", "Telefon"] },
+    { k: "Hesap Ödemek", yasakli: ["Cüzdan", "Restoran", "Para", "Bahşiş", "Alman Usulü"] },
+    { k: "Sürpriz Doğum Günü", yasakli: ["Pasta", "Hediye", "Parti", "Mum", "Yaş"] },
+    
+    // Klasik "İkili" Kavramları
+    { k: "Tencere Kapak", yasakli: ["Uyum", "Mutfak", "Yemek", "Yuvarlak", "Ayrılmaz"] },
+    { k: "Etle Tırnak", yasakli: ["Ayrılmaz", "Bitişik", "Vücut", "Deri", "Acı"] },
+    { k: "Çay ve Simit", yasakli: ["Kahvaltı", "Peynir", "Susam", "Bardak", "Vapur"] },
+    { k: "Hacivat ve Karagöz", yasakli: ["Gölge Oyunu", "Kavga", "Perde", "Kukla", "Geleneksel"] },
+    { k: "Pazar Kahvaltısı", yasakli: ["Sucuk", "Yumurta", "Çay", "Ekmek", "Keyif"] },
+    { k: "Market Listesi", yasakli: ["Alışveriş", "Fiş", "Eksik", "Süt", "Unutmak"] },
+    { k: "Çöpü Dökmek", yasakli: ["Poşet", "Konteyner", "Koku", "Kapı", "Sıra"] },
+    { k: "Kumanda Kavgası", yasakli: ["Televizyon", "Kanal", "Dizi", "Maç", "Kapatmak"] },
+    { k: "Bulaşık Makinesi", yasakli: ["Tabak", "Bardak", "Dizmek", "Yıkamak", "Tablet"] },
+    { k: "Gardırop", yasakli: ["Kıyafet", "Askı", "Elbise", "Dağınıklık", "Dolap"] },
+    { k: "Nevresim Değiştirmek", yasakli: ["Yarşaf", "Yastık", "Yatak", "Kılıf", "Yorgan"] },
+    { k: "Elektrik Faturası", yasakli: ["Para", "Ödemek", "Işık", "Pahalı", "Tutar"] },
+
+    // --- İLİŞKİ VE DUYGULAR ---
+    { k: "İlk Randevu", yasakli: ["Tanışmak", "Heyecan", "Yemek", "Restoran", "Çiçek"] },
+    { k: "Kıskançlık", yasakli: ["Bakmak", "Kavga", "Sevmek", "Trip", "Neden"]  },
+    { k: "Evlilik Teklifi", yasakli: ["Yüzük", "Diz Çökmek", "Evet", "Sürpriz", "Düğün"] },
+    { k: "Balayı", yasakli: ["Tatil", "Düğün Sonrası", "Uçak", "Otel", "Dinlenmek"] },
+    { k: "Görüldü Atmak", yasakli: ["WhatsApp", "Mesaj", "Mavi Tık", "Cevap", "Telefon"] },
+    { k: "Eski Sevgili", yasakli: ["Geçmiş", "Fotoğraf", "Hatırlamak", "Unutmak", "İlişki"] },
+    { k: "Yıldönümü", yasakli: ["Kutlama", "Tarih", "Hediye", "Evlilik", "Özel Gün"] },
+
+    // --- TATİL VE SOSYAL YAŞAM ---
+    { k: "Valiz Hazırlamak", yasakli: ["Tatil", "Kıyafet", "Bavul", "Eşya", "Yolculuk"] },
+    { k: "Navigasyon", yasakli: ["Yol", "Harita", "Adres", "Kaybolmak", "Ses"] },
+    { k: "Selfie Çekmek", yasakli: ["Fotoğraf", "Gülümse", "Telefon", "Poz", "Kamera"] },
+    { k: "Düğün Takısı", yasakli: ["Altın", "Çeyrek", "Düğün", "Gelin", "Damat"] },
+    { k: "Piknik", yasakli: ["Mangal", "Park", "Örtü", "Doğa", "Semaver"] },
+
+      // --- KOMİK VE ZORLAYICI KAVRAMLAR ---
+    { k: "Kayınvalide", yasakli: ["Anne", "Eş", "Ziyaret", "Gelin", "Damat"] },
+    { k: "Diyet Yapmak", yasakli: ["Zayıflamak", "Yemek", "Kilo", "Açlık", "Spor"] },
+    { k: "Horlama", yasakli: ["Uyku", "Gece", "Ses", "Burun", "Yastık"] },
+    { k: "Geç Kalmak", yasakli: ["Hazırlanmak", "Saat", "Beklemek", "Randevu", "Yetişmek"] },
+    { k: "Maç İzlemek", yasakli: ["Futbol", "Gol", "Taraftar", "Stat", "Ofsayt"] },
+    { k: "Online Alışveriş", yasakli: ["Kargo", "İnternet", "Sipariş", "Kurye", "Paket"] },
+
+    // --- NESNELER VE MEKANLAR ---
+    { k: "Alyans", yasakli: ["Yüzük", "Parmak", "Evlilik", "Altın", "Takmak"] },
+    { k: "Çeyiz", yasakli: ["Eşya", "Ev", "Sandık", "Düğün Hazırlığı", "Mutfak"] },
+    { k: "Yatak Odası", yasakli: ["Uyku", "Yastık", "Gece", "Dolap", "Dinlenmek"] },
+    { k: "Ayna", yasakli: ["Bakmak", "Yansıma", "Cam", "Görüntü", "Süslenmek"] },
+
+    // --- EĞLENCELİ EYLEMLER ---
+    { k: "Dans Etmek", yasakli: ["Müzik", "Ritim", "Düğün", "Pist", "Adım"] },
+    { k: "Şarkı Söylemek", yasakli: ["Ses", "Müzik", "Mikrofon", "Karaoke", "Melodi"] },
+    { k: "Yemek Yapmak", yasakli: ["Mutfak", "Tava", "Tencere", "Tarif", "Aşçı"] },
+    { k: "Sinemaya Gitmek", yasakli: ["Film", "Mısır", "Bilet", "Koltuk", "Karanlık"] },
+    { k: "Sarılmak", yasakli: ["Kucaklamak", "Sevgi", "Kollar", "Sıkı", "Dokunmak"] },
+    { k: "Uyumak", yasakli: ["Yatak", "Rüya", "Gece", "Göz", "Dinlenmek"] },
+    { k: "Tatile Çıkmak", yasakli: ["Otel", "Deniz", "Güneş", "Kum", "Yolculuk"] },
+    { k: "Hediye Almak", yasakli: ["Sürpriz", "Paket", "Doğum Günü", "Mağaza", "Para"] },
+    { k: "Kahve İçmek", yasakli: ["Fincan", "Sıcak", "Kafein", "Sohbet", "Telve"] },
+    { k: "Kitap Okumak", yasakli: ["Sayfa", "Kütüphane", "Yazar", "Hikaye", "Cümle"] },
+    { k: "Tom ve Jerry", yasakli: ["Kedi", "Fare", "Kavga", "Peynir", "Çizgi Film"] }
+],
+    "12-15": [
+    "yapay zeka", "atmosfer", "psikolog", "karadelik", "kuresel isinma", 
+    "sosyal medya", "enerji", "arkeoloji", "pasaport", "felsefe", 
+    "senaryo", "asansor", "teknoloji", "ekonomi", "siber zorbalık", 
+    "genetik", "yenilenebilir enerji", "astronomi", "vize başvurusu", "kripto cüzdan", 
+    "psikiyatri", "ekosistem", "karakter gelişimi", "paralel evren", 
+    "sosyoloji", "yazılım", "simülasyon", "etik", "mülakat", 
+    "enflasyon", "sürdürülebilirlik", "laboratuvar", "teleskop", "kültürel miras", 
+    "özgüven", "motivasyon", "internet", "kablosuz kulaklik", "iklim krizi", 
+    "vlog", "arkeolog", "ozgurluk", "parol", "hafiza karti", 
+    "psikoloji", "kurye", "belgesel", "tiyatro", "kamp yapmak", 
+    "proje", "deney", "algoritma", "girişimcilik",
+    "biyoteknoloji", "kisisel veri", "telif hakki", "diplomasi",
+     "paradoks", "izafiyet teorisi", "kuresellesme", "sanal gerceklik",
+    "populizm", "algı yönetimi", "strateji", "yatırım", "network",
+    "stajyer", "kariyer plani", "server", "yazilim mimari",
+    "siber güvenlik", "influencer", "e-ticaret", "is birligi"
+],
+    "9-11": [
+    "teleskop", "miknatis", "paraşut", "astronot", "orkestra", "satranç", 
+    "sandvic", "labirent", "heykel", "kutuphane", "lunapark", 
+    "dedektif", "denizalti", "pusula", "helikopter",
+    "yapay zeka", "fosil", "geri donusum", "kumbara", "internet",
+    "uzay istasyonu", "karne", "kamp ateşi", "müze", "akvaryum",
+    "yanardağ", "telesiyej", "kulaklık", "tablet", "drone",
+    "mimar", "icat", "kar küresi", "grafiti", "belgesel",
+    "doğa yürüyüşü", "protein", "atmosfer", "robotik",
+    "enerji içeceği", "asansör", "trafik lambası", "bilim kurgu",
+    "dokunmatik ekran", "su altı dünyası", "pijama partisi", "sanal gerçeklik", "karikatür",
+    "emoji", "mola", "tenis kortu", "video oyunu", "okul servisi",
+    "şifre",  "çizgi roman", "sosyal ağ", "mikrofon",
+    "iklim değişikliği", "orman yangını", "yıldız kayması", "buluş", "deney",
+    "matematik", "piyano", "havai fişek", "gezi"
+],
+   "4-5": [
+    "agac", "ari", "aslan", "at", "ay", "ayakkabi", "ayi", "balon", "bardak", 
+    "bisiklet", "bulut", "canta", "catal", "cicek", "cilek", "corap", "domates", 
+    "dondurma", "ekmek", "elma", "ev", "fil", "firca", "gemi", "gokkusagi", 
+    "gozluk", "gunes", "havuc", "inek", "kapi", "karpuz", "kasik", "kedi", 
+    "kitap", "kopek", "lamba", "masa", "mont", "muz", "otobus", 
+    "pantolon", "pencere", "peynir", "sabun", "sapka", 
+    "semsiye", "tavsan", "tencere", "tisort", "top", "ucak", "yastik", 
+    "yatak", "yumurta", "zurafa"
+  ],
+  "6-8": [
+    "ahtapot", "anahtar", "astronot", "ayakkabilik", "ayna", "basketbol_potasi", 
+    "boya_paleti", "buzdolabi", "caydanlik", "cekic", "cetvel", "davul", "defter", 
+    "denizalti", "dinozor", "dogum_gunu_pastasi", "durbun", "duvar_saati", 
+    "eldiven", "elmas", "etek", "firin", "flut", "gitar", "hazine_sandigi", 
+    "helikopter", "itfaiye", "kamyon", "kaptan", "kiraz", "kupa", "kursun_kalem", 
+    "laptop", "madalya", "makas", "mektup", "merdiven", "mikroskop", "mont", 
+    "nar", "olta", "perde", "piyano", "pusula", "raket", "rende", "robot", 
+    "sandvic", "sihirbaz_sapkasi", "sira", "tahta", "tarak", "tava", "telefon", 
+    "teleskop", "televizyon", "gozluk", "tornavida", "ucurtma", "utu", "uzum"
+  ],
+
+
+    // --- SESSİZ SİNEMA HAVUZLARI (Tür_Yaş Formatında) ---
+    // Not: Bankada k: "sessiz" yazarsan sistem bunları otomatik eşleştirir.
+    "sessiz_yetiskin": [
+    "Selvi Boylum Al Yazmalım", "Babam ve Oğlum", "Organize İşler", 
+    "Aile Arasında", "Ölümlü Dünya", "7. Koğuştaki Mucize", 
+    "Kış Uykusu", "Kelebeğin Rüyası", "Ahlat Ağacı", 
+    "Züğürt Ağa", "Tosun Paşa", "Süt Kardeşler", 
+    "Çiçek Abbas", "Aşk Tesadüfleri Sever", "Hacivat Karagöz Neden Öldürüldü?", 
+    "Sen Aydınlatırsın Geceyi", "İtirazım Var",  
+    "Pek Yakında", "Dar Alanda Kısa Paslaşmalar", "Kaybedenler Kulübü", 
+    "Bir Zamanlar Anadolu'da", "Kader", "Masumiyet", "Eşkıya", "Gönül Yarası", 
+    "Av Mevsimi", "Her Şey Çok Güzel Olacak", "Kabadayı", 
+    "Güneşi Gördüm", "Mucize", "Düğün Dernek", "Çalgı Çengi", 
+    "Cep Herkülü: Naim Süleymanoğlu", "Müslüm", "Bergen", "Bizim İçin Şampiyon", 
+    "Yahşi Batı", "Eyvah Eyvah",
+    "Hababam Sınıfı", "Pardon", "Susuz Yaz", 
+    "Korkusuz Korkak", "Dünyayı Kurtaran Adam", "Issız Adam", "Gemide", "Ağır Roman", 
+    "Canım Kardeşim", "Babamın Kanatları", 
+    "Sarmaşık", "Kuru Otlar Üstüne", "Takva", "Yumurta"
+],
+"sessiz_esli_oyun": [
+    "Selvi Boylum Al Yazmalım", "Babam ve Oğlum", "Organize İşler", 
+    "Aile Arasında", "Ölümlü Dünya", "7. Koğuştaki Mucize", 
+    "Kış Uykusu", "Kelebeğin Rüyası", "Ahlat Ağacı", 
+    "Züğürt Ağa", "Tosun Paşa", "Süt Kardeşler", 
+    "Çiçek Abbas", "Aşk Tesadüfleri Sever", "Hacivat Karagöz Neden Öldürüldü?", 
+    "Sen Aydınlatırsın Geceyi", "İtirazım Var", "Limonata", 
+    "Pek Yakında", "Dar Alanda Kısa Paslaşmalar", "Kaybedenler Kulübü", 
+    "Bir Zamanlar Anadolu'da", "Kader", 
+    "Masumiyet", "Eşkıya", "Gönül Yarası", 
+    "Av Mevsimi", "Her Şey Çok Güzel Olacak", "Kabadayı", 
+    "Neredesin Firuze", "Güneşi Gördüm", "Mucize", 
+    "Düğün Dernek", "Çalgı Çengi", "Ayla", 
+    "Cep Herkülü: Naim Süleymanoğlu", "Müslüm", "Bergen", 
+    "Bizim İçin Şampiyon", "Yahşi Batı", "Eyvah Eyvah"
+],
+
+     "sessiz_12-15": [
+    "yercekimsiz ortam", "heykeltiras", "trafik polisi", "operasyon", 
+    "elektrik kesintisi", "internet kopmasi", "asansorde kalmak", 
+    "kayak yapmak", "muzayede", "yoga", "pandomim", "akıllı telefonun şarjının bitmesi", 
+    "VR gözlükle oyun oynamak", "okul servisinin kaçması", "sahne korkusu", "lunaparkta hız treni", 
+    "sosyal medya fenomeni", "dişçiden korkmak", "sınavda kopya çekmeye çalışmak", 
+    "elektrikli scooter sürmek", "yapay zeka ile tartışmak", "fast food siparişi beklemek", 
+    "korku filmi izlemek", "sabah alarmını ertelemek", "yanlış gruba mesaj atmak", 
+    "kulaklıkla müzik dinlerken bağırmak", "toplu taşımada yer vermek", "drone uçurmaya çalışmak", 
+     "kütüphanede hapşırmaya çalışmak", "pizza hamuru açmak", 
+    "selfie çekerken rüzgar çıkması",
+    "bozuk para saymak", "paraşütle atlamak", "robot süpürgeyi kovalamak",
+    "şifresini unutan birini canlandırmak", "limon yiyen bebek taklidi", "vlog çekmeye çalışmak",
+    "topuklu ayakkabıyla yürümeye çalışmak", "havuzun soğuk suyuna girmek", "uyuyan birini uyandırmamaya çalışmak",
+    "sessizce sakız patlatmaya çalışmak", "balonla uçmak", "mikroskopla bir şeye bakmak",
+    "acı soslu kanat yemek", "etkileyici bir basketbol smaçı yapmak", "buzda kayıp düşmemeye çalışmak",
+    "asansörde aynaya bakmak", "kayıp bir eşyayı aramak"
+],
+      
+    
+    "sessiz_9-11": [
+    "halter", "balerin", "sörf yapmak", "karate", "orkestra sefi", 
+    "balik tutmak", "dis fircalamak", "fotograf cekmek", "zombi", 
+    "kaykay", "okculuk", "keman calmak", "uyurgezer", "itfaiyeci", "astronot", "pazarcı", "robot dansı",
+    "sihirbaz", "gitar çalmak", "buz pateni", "kaleci",
+    "örümcek adam", "diş ağrısı", "limon yemek", "sıcak kömürde yürümek",
+    "görünmez adam", "bebek taklidi", "ağır bir valiz taşımak",
+    "ip üzerinde yürümek", "dedektif", "köpek gezdirmek", "davul çalmak",
+    "tüple dalış yapmak", "kuaför", "tenis oynamak", "madenci", "heykel", 
+    "rüzgarda yürümek", "piyango kazanmak", "acı biber yemek", "sineği kovalamak", 
+    "safari rehberi", "yoga yapmak", "yürüyen merdivende durmak", 
+    "vampir", "topallamak", "halat çekme yarışı", "duşta şarkı söylemek"
+],
+    "sessiz_4-5": [
+    "ari", "aslan", "at", "ayi", "dis_fircasi", "fil", "inek", "kaplumbaga", 
+    "kedi", "kopek", "maymun", "tavsan", "tavuk", "zurafa", "ordek", 
+    "timsah", "ucak", "gemi", "panda", "itfaiye", "polis_arabasi", 
+    "kamyon", "bisiklet", "traktor", "otobus", "dondurma", "semsiye", "mont", 
+    "domates", "ekmek", "catal", "sabun", "pantolon", "tisort", "agac", "ay", 
+    "bulut", "cicek", "elma", "ev", "gunes", "kapi", "karpuz", "kasik", 
+    "masa", "muz", "pencere", "top", "yumurta", "lamba", "kitap", "firca", 
+    "bardak", "balon", "yatak", "corap", "sapka", "gozluk", "yastik", 
+    "havuc"
+  ],
+  "sessiz_6_8": [
+    "ahtapot", "anahtar", "asci", "aski", "astronot", "atki", "ayakkabilik", 
+    "ayna", "bahcivan", "basketbol_potasi", "bateri", "boya_paleti", "buzdolabi", 
+    "caydanlik", "cekic", "cetvel", "davul", "defter", "denizalti", "dinozor", 
+    "dis_hekimi", "dogum_gunu_pastasi", "doktor", "duduk", "durbun", "duvar_saati", 
+    "eldiven", "elmas", "etek", "firin", "flut", "fotografci", "futbol_kalesi", 
+    "gitar", "hamburger", "hazine_sandigi", "helikopter", "itfaiye", "kamp_atesi", 
+    "kamyon", "kaptan", "kask", "kaydirak", "keman", "kiraz", "koltuk", "kumanda", 
+    "kupa", "kursun_kalem", "laptop", "madalya", "makas", "mektup", "merdane", 
+    "merdiven", "mikroskop", "mizika", "mont", "nar", "olta", "panda", "paten", 
+    "perde", "piyano", "pizza", "polis", "polis_arabasi", "pusula", "raket", 
+    "rende", "ressam", "robot", "roket", "salatalik", "salincak", "sandvic", 
+    "sato", "sihirbaz_sapkasi", "sira", "supurge", "tahta", "tahterevalli", 
+    "tarak", "tava", "telefon", "teleskop", "televizyon", "terzi", "timsah", 
+    "gozluk", "tornavida", "traktor", "tren", "ucan_daire", "ucurtma", "ugur_bocegi", 
+    "utu", "uzum"
+  ],
+// KUTU OYUNU İÇİN YENİ HAVUZLAR
+    "kutudan_soyle_4-5": ["kutunun kapağını açtığında karşında duran keşif rehberinin 1. maddesinin, 1.cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 1. maddesinin, 2. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 1. maddesinin, 3.cümlesi" ,"kutunun kapağını açtığında karşında duran keşif rehberinin 1. maddesinin, 4.cümlesi", "kutunun kapağını açtığında karşında duran keşif rehberinin 2. maddesinin, 1. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 2. maddesinin, 2. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 2. maddesinin, 3. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 2. maddesinin, 4. cümlesi", "kutunun kapağını açtığında karşında duran keşif rehberinin 3. maddesinin, 1. cümlesi", 
+    "kutunun kapağını açtığında karşında duran keşif rehberinin 4. maddesinin, 1. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 4. maddesinin, 2. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 4. maddesinin, 3. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 5. maddesinin, 1. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 5. maddesinin, 2. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 6. maddesi",
+        "kutunun kapağını açtığında karşında duran keşif rehberinin 3. maddesinin, 2. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 3. maddesinin, 3. cümlesi"
+    ],
+    "kutudan_soyle_6-8": ["kutunun kapağını açtığında karşında duran keşif rehberinin 1. maddesinin, 1.cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 1. maddesinin, 2. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 1. maddesinin, 3.cümlesi" ,"kutunun kapağını açtığında karşında duran keşif rehberinin 1. maddesinin, 4.cümlesi", "kutunun kapağını açtığında karşında duran keşif rehberinin 2. maddesinin, 1. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 2. maddesinin, 2. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 2. maddesinin, 3. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 2. maddesinin, 4. cümlesi", "kutunun kapağını açtığında karşında duran keşif rehberinin 3. maddesinin, 1. cümlesi", 
+    "kutunun kapağını açtığında karşında duran keşif rehberinin 4. maddesinin, 1. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 4. maddesinin, 2. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 4. maddesinin, 3. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 5. maddesinin, 1. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 5. maddesinin, 2. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 6. maddesi",
+        "kutunun kapağını açtığında karşında duran keşif rehberinin 3. maddesinin, 2. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 3. maddesinin, 3. cümlesi"],
+    "kutudan_soyle_9-11": ["kutunun kapağını açtığında karşında duran keşif rehberinin 1. maddesinin, 1.cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 1. maddesinin, 2. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 1. maddesinin, 3.cümlesi" ,"kutunun kapağını açtığında karşında duran keşif rehberinin 1. maddesinin, 4.cümlesi", "kutunun kapağını açtığında karşında duran keşif rehberinin 2. maddesinin, 1. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 2. maddesinin, 2. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 2. maddesinin, 3. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 2. maddesinin, 4. cümlesi", "kutunun kapağını açtığında karşında duran keşif rehberinin 3. maddesinin, 1. cümlesi", 
+    "kutunun kapağını açtığında karşında duran keşif rehberinin 4. maddesinin, 1. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 4. maddesinin, 2. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 4. maddesinin, 3. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 5. maddesinin, 1. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 5. maddesinin, 2. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 6. maddesi",
+        "kutunun kapağını açtığında karşında duran keşif rehberinin 3. maddesinin, 2. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 3. maddesinin, 3. cümlesi"],
+    "kutudan_soyle_12-15": ["kutunun kapağını açtığında karşında duran keşif rehberinin 1. maddesinin, 1.cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 1. maddesinin, 2. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 1. maddesinin, 3.cümlesi" ,"kutunun kapağını açtığında karşında duran keşif rehberinin 1. maddesinin, 4.cümlesi", "kutunun kapağını açtığında karşında duran keşif rehberinin 2. maddesinin, 1. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 2. maddesinin, 2. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 2. maddesinin, 3. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 2. maddesinin, 4. cümlesi", "kutunun kapağını açtığında karşında duran keşif rehberinin 3. maddesinin, 1. cümlesi", 
+    "kutunun kapağını açtığında karşında duran keşif rehberinin 4. maddesinin, 1. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 4. maddesinin, 2. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 4. maddesinin, 3. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 5. maddesinin, 1. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 5. maddesinin, 2. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 6. maddesi",
+        "kutunun kapağını açtığında karşında duran keşif rehberinin 3. maddesinin, 2. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 3. maddesinin, 3. cümlesi"],
+        "kutudan_soyle_esli_oyun": ["kutunun kapağını açtığında karşında duran keşif rehberinin 1. maddesinin, 1.cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 1. maddesinin, 2. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 1. maddesinin, 3.cümlesi" ,"kutunun kapağını açtığında karşında duran keşif rehberinin 1. maddesinin, 4.cümlesi", "kutunun kapağını açtığında karşında duran keşif rehberinin 2. maddesinin, 1. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 2. maddesinin, 2. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 2. maddesinin, 3. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 2. maddesinin, 4. cümlesi", "kutunun kapağını açtığında karşında duran keşif rehberinin 3. maddesinin, 1. cümlesi", 
+    "kutunun kapağını açtığında karşında duran keşif rehberinin 4. maddesinin, 1. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 4. maddesinin, 2. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 4. maddesinin, 3. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 5. maddesinin, 1. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 5. maddesinin, 2. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 6. maddesi",
+        "kutunun kapağını açtığında karşında duran keşif rehberinin 3. maddesinin, 2. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 3. maddesinin, 3. cümlesi"],
+    "kutudan_soyle_yetiskin": ["kutunun kapağını açtığında karşında duran keşif rehberinin 1. maddesinin, 1.cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 1. maddesinin, 2. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 1. maddesinin, 3.cümlesi" ,"kutunun kapağını açtığında karşında duran keşif rehberinin 1. maddesinin, 4.cümlesi", "kutunun kapağını açtığında karşında duran keşif rehberinin 2. maddesinin, 1. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 2. maddesinin, 2. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 2. maddesinin, 3. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 2. maddesinin, 4. cümlesi", "kutunun kapağını açtığında karşında duran keşif rehberinin 3. maddesinin, 1. cümlesi", 
+    "kutunun kapağını açtığında karşında duran keşif rehberinin 4. maddesinin, 1. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 4. maddesinin, 2. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 4. maddesinin, 3. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 5. maddesinin, 1. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 5. maddesinin, 2. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 6. maddesi",
+        "kutunun kapağını açtığında karşında duran keşif rehberinin 3. maddesinin, 2. cümlesi","kutunun kapağını açtığında karşında duran keşif rehberinin 3. maddesinin, 3. cümlesi"],
+    
+    "kutudan_bul_4-5": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "17", "18", "19"],
+    "kutudan_bul_6-8": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "17", "18", "19"],
+    "kutudan_bul_9-11": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "17", "18", "19"],
+    "kutudan_bul_12-15": ["BİR ŞARJ KABLOSU", "GÖZLÜK", "CÜZDAN"],
+    "kutudan_bul_yetiskin": ["KREDİ KARTI", "SAAT", "PARFÜM ŞİŞESİ"],
+
+    // --- ÇİZ BAKALIM HAVUZLARI (Tür_Yaş Formatında) ---
+    // Not: Bankada k: "ciz" yazarsan sistem bunları otomatik eşleştirir.
+    "ciz_yetiskin": [
+    "DNA Sarmalı", "Eyfel Kulesi", "Padişah Kavuğu", "Bağlama", 
+    "Sosyal Medya", "Kuzey Işıkları", "Yerçekimi", "Güneş Tutulması", 
+    "Labirent", "Anıtkabir", "Semazen", 
+    "Nazar Boncuğu", "Galata Kulesi", "Truva Atı", "Gramofon", 
+    "Daktilo", "Yel Değirmeni",
+    "İstanbul Boğazı", "Berlin Duvarı", "Osmanlı Tuğrası", "Kız Kulesi",
+    "Borsa Grafiği", "Kripto Para", "Adalet Terazisi", "Kutup Yıldızı",
+    "Bumerang", "Piyano Tuşları",
+     "Zaman Makinesi", "Yelkenli Gemi", "Nükleer Santral", "Semaver",
+    "Gökdelen", "Dünya Haritası"
+],
+"ciz_esli_oyun": [
+    "Alyans", "Nikah Masası", "Bebek Arabası", "Evin Anahtarı", 
+    "Ortak Kumbara", "Kalp", "Mektup", "Çift Kişilik Yatak",
+    "Kumru Kuşları", "Aşk Oku", "Gelinlik ve Damatlık", "Ev Tapusu",
+    
+    // --- YENİ EKLENENLER ---
+    "Balonlarla Süsleme", "Kalpli Pasta", "Yemek Masası", "Sinema Bileti",
+    "Uçak Bileti", "Valiz", "Piknik Sepeti", "Semaver",
+    "Kahve Fincanı", "Pırlanta Yüzük", "Gelin Çiçeği", "Kırmızı Gül",
+    "Mum Işığı", "Aşk Mektubu", "Şemsiye", "Güneş Gözlüğü",
+    "Kum Saati", "Anahtarlık", "Bebek Emziği", "Sürpriz Paket",
+    "Kamera", "Fotoğraf Albümü", "Çerçeve", "Dondurma",
+    "Gitar", "Müzik Notası", "Ay ve Yıldız", "Sonsuzluk İşareti",
+    "El Ele Tutuşmak", "Sırt Çantası", "Kumbara", "Daire Çizmek"
+],
+    "ciz_12-15": [
+    "dna sarmali", "grafiti", "akilli telefon", "elektrikli araba", 
+    "uzay istasyonu", "kulaklik", "mikroskop", "drone", 
+    "kalp grafisi", "emoji", "teleskop",
+    "atom modeli", "sanal gerçeklik gözlüğü", "elektro gitar", "kum saati", "wifi simgesi",
+    "barcode", "eyfel kulesi",
+    "kuru kafa", "voleybol filesi", "müzik notası", "ampul", "yel değirmeni",
+    "parmak izi", "satranç atı", "çapa", "pusula iğnesi", "labirent",
+    "gezegen halkası", "elmas"
+],
+
+  "ciz_9-11": [
+    "eyfel kulesi", "pizza", "kardan adam", "yanardag", "satranc", 
+    "elektrik supurgesi", "yel degirmeni", "kaplumbaga", "kaktus", 
+    "cadir", "durbun", "gitar", "mikroskop",
+    "ozgurluk heykeli", "sicak hava balonu", "piyano", "hamburger", "deniz feneri",
+    "kaykay", "teleskop", "kalemtraş", "kumbara", "pusula",
+    "olta", "labirent", "trafik isigi", "itfaiye aracı",
+    "akvaryum", "posta kutusu", "kulaklik", "askı", 
+    "kar tanesi", "uclü priz"
+],
+    "ciz_4-5": [
+    "agac", "ay", "bulut", "cicek", "elma", "ev", "gunes", "kapi", "karpuz", 
+        "kasik", "masa", "muz", "pencere", "top", "yumurta", "lamba", "kitap", 
+        "firca", "bardak", "balon", "yatak", "corap", "sapka", "gozluk", "bisiklet", 
+        "ucak", "gemi", "yastik", "havuc"
+  ],
+  "ciz_6-8": [
+    "anahtar", "ayakkabilik", "ayna", "basketbol_potasi", "boya_paleti", 
+        "caydanlik", "cekic", "cetvel", "davul", "defter", "durbun", "duvar_saati", 
+        "elmas", "firin", "gitar", "kupa", "kursun_kalem", "laptop", "makas", 
+        "merdiven", "olta", "pusula", "raket", "rende", "tava", "telefon", 
+        "teleskop", "televizyon", "gozluk", "tornavida", "ucurtma", "utu", "madalya"
+  ]
+};
+
+
+
+// --- 3. GÖREV BANKASI (KÜÇÜK 'k' HATASI DÜZELTİLDİ)
+const banka = {
+     
+    "yetiskin": { 
+    /* --- SESSİZ SİNEMA VE ÇİZEREK ANLAT BÖLÜMLERİ --- */
+    1: { 
+        m: "SESSİZ SİNEMA : ⭐ ALTIN KURAL : bu kuralı bilmiyorsanız kutuyu açtığınızda sizi karşılayan keşif rehberinin ikinci maddesini okuyunuz. ", 
+        k: "sessiz", 
+        s: 60, 
+        y: "Sessiz sinemada film ise yerli veya yabancı olduğunu, ayrıca kaç kelime olduğunu söyleyebilirsin. Diğer durumlarda konuşmak yasaktır!", 
+        o: "1 ileri", 
+        c: "bu el yerinizde kalın", 
+        a:"y1",
+        basariliSes : "te1",
+        basarisizSes : "kalceza"
+    },
+    2: { m: "SESSİZ SİNEMA: konuşmadan ⭐ mantığına göre anlat! ", k: "sessiz", s: 60, o: "⭐ mantığına göre ilerle", c: "1geri",  a:"sessiz", basariliSes : "tymilerle",  basarisizSes : "ceza1" },
+    3: { m: "SESSİZ SİNEMA: konuşmadan ⭐ mantığına göre anlat!", k: "sessiz", s: 60, o: "⭐ mantığına göre ilerle", c: "1 geri.", a:"sessiz",  basariliSes : "tymilerle", basarisizSes : "ceza1" },
+    4: { m: "SESSİZ SİNEMA: konuşmadan ⭐ mantığına göre anlat!", k: "sessiz", s: 60, o: "⭐ mantığına göre ilerle", c: "2 geri.",a:"sessiz", basariliSes : "tymilerle",  basarisizSes : "ceza2"  },
+    5: { m: "SESSİZ SİNEMA: konuşmadan ⭐ mantığına göre anlat!", k: "sessiz", s: 60, o: "⭐ mantığına göre ilerle", c: "Yerinde kal." , a:"sessiz", basariliSes : "tymilerle",  basarisizSes : "kalceza"  },
+    6: { m: "SESSİZ SİNEMA: konuşmadan ⭐ mantığına göre anlat!", k: "sessiz", s: 60, o: "⭐ mantığına göre ilerle", c: "2 geri."  , a:"sessiz", basariliSes : "tymilerle",  basarisizSes : "ceza2"  },
+    7: { m: "SESSİZ SİNEMA: konuşmadan ⭐ mantığına göre anlat!", k: "sessiz", s: 60, o: "⭐ mantığına göre ilerle", c: "1 geri." , a:"sessiz", basariliSes : "tymilerle",  basarisizSes : "ceza1"   },
+    8: { m: "SESSİZ SİNEMA: konuşmadan ⭐ mantığına göre anlat!", k: "sessiz", s: 60, o: "⭐ mantığına göre ilerle", c: "1 geri" , a:"sessiz", basariliSes : "tymilerle",  basarisizSes : "ceza1"   },
+    9: { m: "ÇİZEREK ANLAT : Çıkan kelimeleri konuşmadan, çizerek, ⭐ mantığına göre anlat .", k: "ciz", s: 60, o: "⭐ mantığına göre ilerle", c: "1 Geri." , a:"cizerek", basariliSes : "tymilerle",  basarisizSes : "ceza1"   },
+    10: { m: "ÇİZEREK ANLAT: Çıkan kelimeleri konuşmadan, çizerek, ⭐ mantığına göre anlat", k: "ciz", s: 60, o: "⭐ mantığına göre ilerle", c: "2 Geri."  , a:"cizerek", basariliSes : "tymilerle",  basarisizSes : "ceza2"   },
+    11: { m: "ÇİZEREK ANLAT : Çıkan kelimeleri konuşmadan, çizerek, ⭐ mantığına göre anlat", k: "ciz", s: 60, o: "⭐ mantığına göre ilerle", c: "1 Geri." , a:"cizerek", basariliSes : "tymilerle",  basarisizSes : "ceza1"   },
+    12: { m: "ÇİZEREK ANLAT: Çıkan kelimeleri konuşmadan, çizerek, ⭐ mantığına göre anlat.", k: "ciz", s: 60, o: "⭐ mantığına göre ilerle", c: "1 Geri." , a:"cizerek", basariliSes : "tymilerle",  basarisizSes : "ceza1"    },
+    13: { m: "ANLAT BAKALIM: ⭐ mantığı geçerlidir.", k: true, s: 60, o: "⭐ mantığına göre ilerle", c: "1 Geri." , a:"anlatkisa", basariliSes : "tymilerle",  basarisizSes : "ceza1"    },
+
+    /* --- ANLAT BAKALIM BÖLÜMLERİ --- */
+    14: { m: "ANLAT BAKALIM: konuşarak ama kelimeyi söylemeden anlat. ⭐ mantığı geçerlidir.", k: true, s: 60, o: "⭐ mantığına göre ilerle", c: "1 Geri.", a:"anlatuzun", basariliSes : "tymilerle",  basarisizSes : "ceza1"    },
+    15: { m: "ANLAT BAKALIM: ⭐ mantığı geçerlidir.", k: true, s: 60, o: "⭐ mantığına göre ilerle", c: "1 Geri." , a:"anlatkisa", basariliSes : "tymilerle",  basarisizSes : "ceza1"     },
+    16: { m: "ANLAT BAKALIM: ⭐ mantığı geçerlidir.", k: true, s: 60, o: "⭐ mantığına göre ilerle", c: "1 Geri." , a:"anlatkisa", basariliSes : "tymilerle",  basarisizSes : "ceza1"     },
+    17: { m: "ANLAT BAKALIM: ⭐ mantığı geçerlidir.", k: true, s: 60, o: "⭐ mantığına göre ilerle", c: "1 Geri."  , a:"anlatkisa", basariliSes : "tymilerle",  basarisizSes : "ceza1"     },
+
+    /* --- KUTUDAN SÖYLE BÖLÜMLERİ --- */
+    18: { m: "ANLAT BAKALIM: ⭐ mantığı geçerlidir.", k: true, s: 60, o: "⭐ mantığına göre ilerle", c: "1 Geri." , a:"anlatkisa", basariliSes : "tymilerle",  basarisizSes : "ceza1"     },
+    19: { m:"ANLAT BAKALIM: ⭐ mantığı geçerlidir.", k: true, s: 60, o: "⭐ mantığına göre ilerle", c: "1 Geri." , a:"anlatkisa", basariliSes : "tymilerle",  basarisizSes : "ceza1"     },
+    20: { m: "KUTUDAN SÖYLE: yönlendirmemizle kutudan bulacağın cümlenin ikinci kelimesini de kullanarak masadaki herkeze bir iltifat et", k: "kutudan_soyle", o: "Zar At ve İlerle", c: "1 Geri." , a:"y20", basariliSes : "tzar",  basarisizSes : "ceza1"    },
+    21: { m: "KULAKTAN KULAĞA: yönlendirmemizle kutudan bulacağın cümle yi sağındaki kişinin kulağına söyle, aynı şekilde devam etsin, son kişi sesli bir şekilde doğru cümleyi söylerse, başarılı sayılırsın", k: "kutudan_soyle", s: 45, o: "Zar at ve ilerle", c: "1 Geri.", a:"y21", basariliSes : "tzar",  basarisizSes : "ceza1"     },
+    22: { m: "KUTUDAN SÖYLE: Yönlendirmemizle, kutudan bulacağın cümlenin, son kelimesinin, ilk harfiyle, beş isim söyle. süre 30 sn ", k: "kutudan_soyle", s: 30, o: "Zar at ve ilerle", c: "2 geri" , a:"y22", basariliSes : "tzar",  basarisizSes : "ceza2"     },
+
+    /* --- DİĞER TÜM GÖREVLER --- */
+    23: { m: "ANLAT BAKALIM: ⭐ mantığı geçerlidir.", k: true, s: 60, o: "⭐ mantığına göre ilerle", c: "1 Geri." , a:"anlatkisa", basariliSes : "tymilerle",  basarisizSes : "ceza1"     },
+    24: { m: "ANLAT BAKALIM: ⭐ mantığı geçerlidir.", k: true, s: 60, o: "⭐ mantığına göre ilerle", c: "1 Geri."  , a:"anlatkisa", basariliSes : "tymilerle",  basarisizSes : "ceza1"    },
+    25: { m: "KÖR EBE MODU: Bir bez yada kıyafet yardımıyla gözlerini kapat, yakaladığın oyuncu 1 geri gider.", k: false, s: 45, o: "1 İleri", c: "1 Geri.", a:"y25", basariliSes : "te1",  basarisizSes : "ceza1"     },
+    26: { m: "Yüzden geriye dokuzar dokuzar say. süre 20 sn . Her dört sayıda bir kare ilerle.", k: false, s: 20, o: "Bildiğin Her dört sayı için artı bir ilerle", c: "bu el yerinizde kalın.", a:"y26", basariliSes : "tbildiğin",  basarisizSes : "kalceza"      },
+    27: { m: "KULAKTAN KULAĞA: yönlendirmemizle kutudan bulacağın cümle yi sağındaki kişinin kulağına söyle, aynı şekilde devam etsin, son kişi sesli bir şekilde doğru cümleyi söylerse, başarılı sayılırsın", k: "kutudan_soyle", s: 45, o: "1 ilerle", c: "1 Geri." , a:"y21", basariliSes : "te1",  basarisizSes : "ceza1"      },
+    28: { m: "TEKERLEME: Bu pikap, şu pikap. Dişi pikap erkek pikap. 15 sn içinde üç kez söyle.", k: false, s: 15, o: "1 İleri", c: "Şarkı veya taklit yapmak şartıyla 1 ileri.", a:"y28", basariliSes : "te1",  basarisizSes : "cezataklit"     }, 
+    29: { m: "KOORDİNASYON: Bir elinle karnını ovuştur, diğeriyle kafana vur. ve aynı zamanda zıpla, süre 20 sn.", k: false, s: 20, o: "1 ileri", c: "2 Geri." , a:"y29", basariliSes : "te1",  basarisizSes : "ceza2"    },
+    30: { m: "GÖZ DÜELLOSU: En ilerideki oyuncu ve sen, birbirinizin gözlerine bakın, ilk gözünü kırpan kaybeder. Kazanan bir adım ilerler.", k: false, o: "1 İleri", c: "1 Geri." , a:"y30", basariliSes : "te1",  basarisizSes : "ceza1"    },
+    31: { m:"3 GERÇEK 1 YALAN : Kendinle alakalı 4 şey söyle 1 tanesi yalan olsun, herkezin ortak kararına göre, yalan olan tahmin edilirse, başarısız sayılırsın,", k: false, s: 60, o: "1 ileri", c: "Şarkı veya taklit yapmak şartıyla bir ileri.", a:"y31", basariliSes : "te1",  basarisizSes : "cezataklit"     },
+    32: { m: "MARKA SAYMA: Evdeki ürünlerden beş tane marka say. süre 20 sn ", k: false, s: 20, o: "1 ileri", c: "2 Geri." , a:"y32", basariliSes : "te1",  basarisizSes : "ceza2"    },
+    33: { m: "TELEFON REHBERİ: Rehberdeki birini ara, ciddi bir şekilde, piyangodan 11 milyon çıktığını söyle ve hayır kurumu önerisi iste!", y:"Oyun olduğunu en son söyle.", k: false, o: "2 ileri", c: "masadakilere bir şeyler ikram etmek şartıyla 1 ilerle", a:"y33", basariliSes : "te2",  basarisizSes : "cezaikram"     },
+    34: { m: "SİYASETÇİ MODU: Neden bu kadar güzelsin veya yakışıklısın? sorularına gülmeden, ciddi bir siyasetçi gibi cevap ver.( diğer oyuncular tarafından başka sorular da sorulabilir)", y: "Arada Adalet Bakanımızla ilgili bir cümle kur.", s: 30, o: "1 ileri", c: "Şarkı, taklit yapmak şartıyla 1 ileri", a:"y34", basariliSes : "te1",  basarisizSes : "cezataklit"     },
+    35: { m: "KUTUDAN SÖYLE: Yönlendirmemizle kutudan bulacağın cümlenin, 3. kelimesinin, ilk harfiyle başlayan, beş şehir veya ilçe söyle. süre 45 sn", k: "kutudan_soyle", s: 45, o: "1 İlerle", c: "bu tur yerinizde kalın" , a:"y35", basariliSes : "te1",  basarisizSes : "kalceza"    },
+    36: { m: "EVET VEYA HAYIR DEMEK YASAK: Diğer oyuncular 45 sn boyunca sana evet veya hayır dedirtmeye çalışacak,", k: false, o: "1 İleri", c: "bu el yerinizde kalın ", a:"y36", basariliSes : "te1",  basarisizSes : "kalceza"     },
+    37: { m: "AYNA GİBİ OL BAKALIM : sağındaki kişinin 30 saniye boyunca ayna gibi hareketlerinin aynısını yapmaya çalış, sağındaki kişi de seni biraz zorlasın.", k: false, s: 30, o: "1 İleri", c: "Şarkı veya taklit yapmak şartıyla 1 ileri", a:"y37", basariliSes : "te1",  basarisizSes : "cezataklit"     },
+    38: { m: "TERS ALFABE: Alfabede sondan geriye beş harf söyle. süre 10 sn.", k: false, s: 10, o: "1 İleri", c: " bu el yerinizde kalın", a:"y38", basariliSes : "te1",  basarisizSes : "kalceza"     },
+    39: { m: "HAFIZA TESTİ: Masaya 10 tane nesne koyun. Masadaki on nesneye bak. Gözünü kapat, beş şehir say ve sonra nesnelerin sekiz tanesini hatırlamaya çalış!", k: false, s: 60, o: "1 İleri", c: "1 Geri.", a:"y39", basariliSes : "te1",  basarisizSes : "ceza1"     }, 
+    40: { m: "BAŞARI KONUŞMASI: Sanki rekorlar kitabına girmişsin gibi ciddi bir konuşma yap", k: false, o: "TEBRİKLER OYUNU BİTİRDİNİZ! 🎉", c: "2 Geri." , a:"y40", basariliSes : "tob",  basarisizSes : "ceza2"    } 
+},
+    
+    "esli_oyun": {
+    // --- 1. GRUP: ANLATMALI SORULAR (EN BAŞTA) ---
+    1: { m: "ANLAT BAKALIM:  Eşler bildiği kadar ilerler. görevler sırayla yapılır.", k: true, s: 60, o: "anlattığınız kadar ilerleyin", c: "yerinizde kalın" },
+    2: { m: "SESSİZ SİNEMA: Çıkan kelimelerden anlattığın kadar ilerlersiniz. Anlattığınız bir filmse yerli mi yabancı mı olduğunu söyleyebilirsiniz, bunun haricinde konuşmak yasak.", k: "sessiz", s: 60, o: "anlattığın kadar İlerle", c: "2 geri" },
+    3: { m: "ÇİZEREK ANLAT: Aranızda bir anlatıcı seçin, çıkan kelimeleri konuşmadan çizerek anlatmaya çalışsın. Anlattığınız kadar ilerleyin.", k: "ciz", s: 60, o: "anlattığınız kadar ilerleyin", c: "2 Geri" },
+    4: { m: "ANLAT BAKALIM", k: true, s: 60, o: "anlattığınız kadar İleri", c: "1 Geri" },
+    5: { m: "SESSİZ SİNEMA", k: "sessiz", s: 60, o: " anlattığınız kadar İleri", c: "bu el yerinde Kal" },
+    6: { m: "ÇİZEREK ANLAT", k: "ciz", s: 60, o: "anlattığınız kadar İleri", c: "1 Geri" },
+    7: { m: "ANLAT BAKALIM", k: true, s: 60, o: "anlattığınız kadar İleri", c: "1 Geri" },
+    8: { m: "SESSİZ SİNEMA", k: "sessiz", s: 60, o: "anlattığınız kadar İleri", c: "bu el yerinde Kal" },
+    9: { m: "ÇİZEREK ANLAT", k: "ciz", s: 60, o: "anlattığınız kadar İleri", c: "1 Geri" },
+    10: { m: "ANLAT BAKALIM", k: true, s: 60, o: "anlattığınız kadar İleri", c: "2 Geri" },
+    11: { m: "SESSİZ SİNEMA", k: "sessiz", s: 60, o: "anlattığınız kadar İleri", c: "bu el yerinde Kal" },
+    12: { m: "ÇİZEREK ANLAT", k: "ciz", s: 60, o: "anlattığınız kadar İleri", c: "1 Geri" },
+    13: { m: "ANLAT BAKALIM", k: true, s: 60, o: "anlattığınız kadar İleri", c: "1 Geri" },
+    14: { m: "SESSİZ SİNEMA", k: "sessiz", s: 60, o: "anlattığınız kadar İleri", c: "bu el yerinde Kal" },
+    15: { m: "KUKLA MODU: Rakip takımdan birini kukla olarak kullanarak anlat. Konuşmak yasak.", k: "ciz" , s: 60, o: "1 İleri", c: "bu el yerinde Kal" },
+
+    // --- 2. GRUP: ETKİLEŞİM VE SORU-CEVAP ---
+    16: { m: "ANLAT BAKALIM", k: true, s: 60, o: "anlattığınız kadar İleri", c: "1 Geri" },
+    17: { m: "ANLAT BAKALIM", k: true, s: 60, o: "anlattığınız kadar İleri", c: "1 Geri" },
+    18:  { m: "ANLAT BAKALIM", k: true, s: 60, o: "anlattığınız kadar İleri", c: "1 Geri" },
+    19: { m: "SIRT SIRTA: Eşin sırtına parmağıyla bir kelime yazsın. Bilirsen ilerleyin.", k: false, s: 30, o: "1 ileri", c: "bu el yerinde Kal" },
+    20: { m: "İLK TANIŞMA: İlk tanıştığınızda eşinin üzerinde ne renk kıyafetler vardı? Rakip takımın göreceği bir kağıda yaz ve eşinin bilmesi gerek.", k: false, s: 20, o: "zar at ve ilerle", c: "1 Geri" },
+    21: { m: "TAKIM ÇALIŞMASI: Eşinizle rakip takımdan birinin aynası olun. O ne hareket yaparsa siz de birbirinize o hareketi yapın.", k: false, s: 20, o: "2 İleri", c: "1 geri" },
+    22: { m: "GÖZ HAPSİ: Eşinle 30 saniye göz göze bakışın. Gülerseniz ya da gözlerinizi kaçırırsanız başarısız sayılırsınız.", k: false, s: 30, o: "1 İleri", c: "1 Geri" },
+    23: { m: "AYNA OL: 30 saniye boyunca eşinin her hareketini taklit et.", k: false, s: 30, o: "1 İleri", c: "bu el yerinde Kal" },
+    24: { m: "EVET/HAYIR: Rakip takımın sorduğu sorulara 'evet' ya da 'hayır' demeden cevap ver.", k: false, s: 45, o: "1 İleri", c: "1 Geri" },
+    25: { m: "TAKIM ÇALIŞMASI: Eşinle yan yana gelin, içteki kollarınızı birbirinize dolayın. Dıştaki ellerinizle kağıttan uçak yapın.", k: false, s: 45, o: "1 ileri", c: "1 geri" },
+    26: { m: "TAKIM ÇALIŞMASI: Bir eş dışarı çıksın, diğerine bir nesne söylensin.Eşinin yönlendirmeleriyle, dışarıdaki eş gözü kapalı gelip nesneyi bulmaya çalışsın.", k: false, s: 60, o: "zar at ve ilerle", c: "2 geri" },
+    27: { m: "KUTUDAN BUL: Kutudan verilen kelimeleri kullanarak, bir dize sen, bir dize eşin söyleyecek şekilde bir dörtlük söyleyin.", k: false, o: "1 İleri", c: "yerinizde kalın veya hayvan taklidi yapın ilerleyin" },
+    28: { m: "DOKUN VE BİL: Gözlerini kapat, eşin eline bir nesne versin. Bilirsen ilerle.", k: false,  y: "Anlamak için dokun!", s: 20, o: "1 İleri", c: "2 Geri" },
+    29: { m: "iltifat MARATONU: 30 saniyede eşin için 5 farklı iltifat söyle.", k: false, s: 30, o: "1 İleri", c: "1 Geri" },
+    30: { m: "TAŞ-KAĞIT-MAKAS: Rakip takımdan bir kişiyi seç ve taş-kağıt-makas oyna. 3 yapan kazanır.", k: false, s: 60, o: "Zar At", c: "bu el yerinde Kal" },
+    31: { m: "KİMLİK KARTI: Eşinin annesinin kızlık soy adını bil ", k: false, s: 20, o: "1 İleri", c: "yerinizde kalın veya bir hayvan taklidi yapıp ilerleyin" },
+    32: { m: "HAYALİ TATİL: Bir eş dışarı çıksın. Diğeri gitmek istediği yeri anlatsın. Dışarıdaki eş bilmek zorunda.", k: false, s: 30, o: "1 İleri", c: "bu el yerinde Kal veya bir hayvan taklidi yapıp ilerleyin" },
+    33: { m: "EN SEVDİĞİ YEMEK: Eşinin en sevdiğin 3 yemeği sadece rakip takımın görebileceği bir kağıda yaz. Eşin en az 2 tanesini 15 saniyede sayması gerekiyor.", k: false, s: 20, o: "1 ileri", c: "1 geri" },
+    34: { m: "TEK NEFES: Eşinin adını 15 saniye boyunca hiç nefes almadan tekrarla.", k: false, s: 15, o: "2 İleri", c: "1 Geri" },
+    35: { m: "HEDİYE TAHMİNİ: Eşlerden biri almak istediği hediyeyi yazsın, diğeri tahmin etsin.", k: false, s: 45, o: "1 ileri", c: "bu el yerinde Kal" },
+    36: { m: "TELEFON REHBERİ: Eşinin telefonunda senin adın tam olarak nasıl kayıtlı?", k: false, s: 15, o: "1 İleri", c: "1 Geri" },
+    37: { m: "DANS: Eşinle beraber 20 saniye müziksiz dans edin.", k: false, s: 20, o: "1 İleri", c: "bu el yerinde Kal" },
+    38: { m: "BUL BAKALIM: Rakip takım odada yazılı bir kelime bulsun ve yazsın, siz onu bulmaya çalışın.", k: false, s: 45, o: "1 İleri", c: "1 Geri" },
+    39: { m: "3 GERÇEK 1 YALAN: Kendinle ilgili 4 şey söyle. 1 tanesi yalan olsun. yalan olanı eşin bilirse başarılı sayılırsınız", k: false,  o: "1 İleri", c: "bu el yerinde Kal" },
+    40: { m: "BÜYÜK FİNAL: Eşine sarıl ve oyunun en güzel anını anlat. (ŞAMPİYON!)", k: false, s: 60, o: "OYUNU KAZANDIN!", c: "bu el yerinde Kal" }
+},
+
+"tek_yetiskin": { 
+    /* --- SESSİZ SİNEMA, ÇİZEREK ANLAT VE ANLAT BAKALIM (ÖNCELİKLİ ANLATMA GRUBU) --- */
+    1: { m: "ANLAT BAKALIM: Konuşarak kelimeyi söylemeden anlat. ⭐ ALTIN KURAL ; bu kuralı bilmiyorsanız kutuyu açtığınızda sizi karşılayan keşif rehberinin ikinci maddesini okuyunuz.  ", k: true, s: 60, o: "anlattığın kadar yani yıldız mantığına göre ilerle", c: "bu el yerinde Kal" },
+    2: { m: "SESSİZ SİNEMA : konuşmadan, sessiz bir şekilde anlat. yıldız mantığı geçerlidir.", k: "sessiz", s: 60, o: "yıldız mantığına göre ilerleyin", c: "bu el yerinde Kal" },
+    3: { m: "SESSİZ SİNEMA : yıldız mantığı geçerlidir.", k: "sessiz", s: 60, o: "yıldız mantığına göre ilerleyin", c: "bu el yerinde Kal" },
+    4: { m: "SESSİZ SİNEMA : yıldız mantığı geçerlidir.", k: "sessiz", s: 60, o: "yıldız mantığına göre ilerleyin", c: "bu el yerinde Kal" },
+    5: { m: "SESSİZ SİNEMA : yıldız mantığı geçerlidir.", k: "sessiz", s: 60, o: "yıldız mantığına göre ilerleyin", c: "bu el yerinde Kal" },
+    6: { m: "SESSİZ SİNEMA : yıldız mantığı geçerlidir.", k: "sessiz", s: 60, o: "yıldız mantığına göre ilerleyin", c: "bu el yerinde Kal" },
+    7: { m: "SESSİZ SİNEMA : yıldız mantığı geçerlidir.", k: "sessiz", s: 60, o: "yıldız mantığına göre ilerleyin", c: "bu el yerinde Kal" },
+    8: { m: "ÇİZEREK ANLAT: Konuşmadan, bir kağıda çizerek anlat. Yıldız mantığı geçerlidir.", k: "ciz", s: 60, o: "yıldız mantığına göre ilerle", c: "bu el yerinde Kal" },
+    9: { m: "ÇİZEREK ANLAT: Yıldız mantığı geçerlidir.", k: "ciz", s: 60, o: "yıldız mantığına göre ilerle", c: "bu el yerinde Kal" },
+    10: { m: "ÇİZEREK ANLAT : Yıldız mantığı geçerlidir.", k: "ciz", s: 60, o: "yıldız mantığına göre ilerle", c: "bu el yerinde Kal" },
+    11: { m: "BU NEDİR? : ANLAT BAKALIM : konuşarak ama çıkan kelimeyi yada resmi söylemeden anlat.  yıldız mantığı geçerlidir.", k: true, s: 60, o: "yıldız mantığına göre ilerleyin", c: "bu el yerinde Kal"},
+    12: { m: "BU NEDİR? : ANLAT BAKALIM : yıldız mantığı geçerlidir.", k: true, s: 60, o: "yıldız mantığına göre ilerleyin", c: "bu el yerinde Kal"},
+    13: { m: "BU NEDİR? ANLAT BAKALIM : yıldız mantığı geçerlidir ", k: true, s: 60, o: "yıldız mantığına göre ilerleyin", c: "bu el yerinde Kal" },
+    14: { m: "BU NEDİR? ANLAT BAKALIM : yıldız mantığı geçerlidir ", k: true, s: 60, o: "yıldız mantığına göre ilerleyin", c: "bu el yerinde Kal" },
+    15: { m: "BU NEDİR? ANLAT BAKALIM : yıldız mantığı geçerlidir ", k: true, s: 60, o: "yıldız mantığına göre ilerleyin", c: "bu el yerinde Kal" },
+    16: { m: "BU NEDİR? ANLAT BAKALIM : yıldız mantığı geçerlidir.", k: true, s: 60, o: "yıldız mantığına göre ilerleyin", c: "bu el yerinde Kall"},
+    17: { m: "BU NEDİR? ANLAT BAKALIM : yıldız mantığı geçerlidir", k: true, s: 60, o: "yıldız mantığına göre ilerle", c: "bu el yerinde Kal" },
+    18: { m: "BU NEDİR? ANLAT BAKALIM: Yıldız mantığı geçerlidir.", k: true, s: 60, o: "yıldız mantığına göre ilerle", c: "bu el yerinde Kal" },
+    19: { m: "BU NEDİR? ANLAT BAKALIM: Yıldız mantığı geçerlidir.", k: true, s: 60, o: "yıldız mantığına göre ilerle", c: "bu el yerinde Kal" },
+
+    /* --- KUTUDAN SÖYLE BÖLÜMLERİ --- */
+    20: { m: "KULAKTAN KULAĞA: kutudan söyleyeceğin cümleyi görevin sana tarif ettiği şekilde, kimseye göstermeden bul, sağındaki kişinin kulağına söyle , oda sağındakine söylesin en sona kalan kişi sesli bir şekilde aynı cümleyi söylerse grup olarak herkez başarılı sayılır.", k: "kutudan_soyle", o: "zar at ve ilerle", c: "bu el yerinde Kal" },
+    21: { m: "KUTUDAN SÖYLE : Yönlendirmemizle kutudan bulacağın cümlenin 3. kelimesinin son harfi ile 5 tane şehir veya ilçe say", k: "kutudan_soyle", s: 20, o: "Zar at ve ilerle", c: "1 Geri" },
+    22: { m: "KULAKTAN KULAĞA: yönlendirmemizle kutudan bulacağın cümle yi sağındaki kişinin kulağına söyle, aynı şekilde devam etsin, son kişi sesli bir şekilde doğru cümleyi söylerse, başarılı sayılırsın", k: "kutudan_soyle", s: 45, o: "Zar at ve ilerle", c: "1 Geri." },
+
+    /* --- DİĞER TÜM GÖREVLER (EĞLENCE, TAKLİT, KOORDİNASYON) --- */
+    23: { m: "HAYVAN TAKLİDİ:Kağıda sadece senin görebileceğin bir hayvan ismi yaz, konuşmadan ve ses çıkarmadan bu hayvanı anlatmaya çalış, ilk bilen kişiyle birlikte ilerleyin", k: false, s: 45, o: "1 İleri", c: "bu el yerinde Kal" },
+    24: { m: "TEKERLEME SÖYLE : Şu köşe yaz köşesi, şu köşe kış köşesi, ortada su şişesi. 20 saniye içinde 5 kere söyle", k: false, s: 20, o: "1 İleri", c: "1 Geri" },
+    25: { m: "DONMA MODU: masadaki herkez süre başlatılınca donsun ilk gülen veya hareket eden hariç herkez ilerler", k: false, s: 45, o: "1 ileri", c: "bu el yerinde Kal" },
+    26: { m: "TANIMA MODU : Gözlerini bir bez yada kıyafet yardımıyla kapat ve eline verilen nesneyi tanımaya çalış ", k: false, s: 20, o: "1 İleri", c: "bu el yerinde Kal" },
+    27: { m: "HEYKEL OL: diğerleri seni güldürmeye çalışssın. süre 45 sn ", k: false, s: 45, o: "1 İleri", c: "bu el yerinde Kal"  },
+    28: { m: "SAKLAMBAÇ MODU : Oyuncuların saklanabilmesi için biraz süre ver ve 45 sn içinde en az birini bulmaya çalış ilk bulduğun kişi 1 geri gider", k: false, s: 45, o: "1 İleri", c: "1 geri" },
+    29: { m: "KULAKTAN KULAĞA: yönlendirmemizle kutudan bulacağın cümle yi sağındaki kişinin kulağına söyle, aynı şekilde devam etsin, son kişi sesli bir şekilde doğru cümleyi söylerse, başarılı sayılırsın", k: "kutudan_soyle", s: 45, o: "Zar at ve ilerle", c: "1 Geri." },
+    30: { m: " ŞARKI SÖYLE: Masadaki kişilerin seçeceği bir şarkıyı sadece (vak vak) diyerek ördek gibi söyle", k: false,  s: 20, o: "1 İleri", c: "bu el yerinde Kal" },
+    31: { m: "PARMAK OYUNU OYNA: masadaki en geride olan kişiyle parmak güreşi yap kazanan ilerlesin. 45 sn boyunca kim daha fazla kazanırsa, o ilerler.", k: false, r: "parmakoyunu", s: 45, o: "1 İleri", c: "2 geri" },
+    32: { m: "AT TAKLİDİ: Masadaki en küçük kişiyi sırtına al ve oyunu oynadığınız yerin etrafında, at sesleri çıkararak 3 tur at", k: false, s: 30, o: "1 İleri", c: "1 geri" },
+    33: { m: "UÇAK GİBİ UÇ: Oyunu oynadığınız yerin etrafında 3 tur uçak sesleri çıkararak kolların açık bir vaziyette uç.", k: false, s: 30, o: "1 İleri", c: "1 geri" },
+    34: { m: "OYUNDAKİ HER KİŞİNİN İSMİNİ TERSTEN SÖYLE", k: false, s: 60, o: "1 İleri", c: "bu el yerinde Kal" },
+    35: { m: "TAKLİT YAPMA : Masadaki en geride olan oyuncunun verilen süre boyunca taklidini yap. o kişi seni biraz zorlasın", k: false, o: "1 İleri", c: "bu el yerinde Kal" },
+    36: { m: "HAYAL ANLAT: Sürekli kurduğun bir şeyin hayalini anlat.", k: false, s: 30, o: "1 İleri", c: "1 geri" },
+    37: { m: "HAYALİ BİR YEMEK PİŞİR:Kimseye göstermeden kağıda bir yemek ismi yaz, hayali bir şekilde bu yemeği pişir, nasıl pişirdiğini tarif et, yemeğin ismini bilen kişi ile birlikte ilerle", k: false, s: 60, o: "1 İleri", c: "1 geri" },
+    38: { m: "HERKESİN BİLDİĞİ BİR ŞARKIYI SÖYLE: Eşlik edenler seninle birlikte ilerler", k: false, s: 60, o: "1 İleri", c: "1 geri" },
+    39: { m: "KÖR EBE: Gözlerini bir bez yada kıyafet yardımıyla kapat, 30 saniye boyunca en az 1 kişiyi yakalayabilirsen, başarılı sayılırsın", k: false, s: 30, o: "1 ileri", c: "bu el yerinde Kal" },
+    40: { m: "BAŞARI KONUŞMASI: Gayet ciddi bir şekilde ödül törenindeymiş gibi bir havayla, başarı konuşmanı yap.", k: false, s: 20, o: "TEBRİKLER BAŞARIYLA BİTİRDİNİZ", c: "bu el yerinde Kal" } 
+},
+"6-8": {
+    /* --- SESSİZ SİNEMA, RESMİ ANLAT VE ÇİZEREK ANLAT (ÖNCELİKLİ ANLATMA GRUBU) --- */
+    1: { m: "RESMİ ANLAT : konuşarak resmin ismini söylemeden anlat. Anlatma oyunlarında, her resim için, anlatan ve doğru cevaplayan 1 ilerler. buna yıldız mantığına göre ilerleme denir. sana gelicek anlatma sorularında, bu kural geçerlidir. süre 90 sn", k: true, s: 90, o: "yıldız mantığına göre ilerle", c: "Kal" },
+    2: { m: "RESMİ ANLAT : konuşarak resmin ismini söylemeden anlat. süre 90 sn", k: true, s: 90, o: "yıldız mantığına göre ilerle", c: "bu el yerinde Kal" },
+    3: { m: "RESMİ ANLAT : konuşarak ama nesnenin adını söylemeden anlat,süre 90 sn", k: true, s: 90, o: "anlattığın kadar İleri", c: "bu el yerinde Kal" },
+    4: { m: "RESMİ ANLAT : konuşarak ama nesnenin adını söylemeden anlat.", k: true, s: 90, o: "yıldız mantığına göre ilerle", c: "bu el yerinde Kal" },
+    5: { m: "ÇİZEREK ANLAT : resmi çizerek konuşmadan anlat süre 90 sn", k: true, s: 90, o: "anlattığın kadar İleri", c: "bu el yerinde Kal" },
+    6: { m: "RESMİ ANLAT: konuşarak nesnenin adını söylemeden süre 90 sn", k: true, s: 90, o: "anlattığın kadar İleri", c: "bu el yerinde Kal" },
+    7: { m: "RESMİ ANLAT süre 90 sn", k: true, s: 90, o: "anlattığın kadar İleri", c: "bu el yerinde Kal" },
+    8: { m: "SESSİZ SİNEMA : sessiz bir şekilde, konuşmadan, sadece hareketlerinle, anlat süre 90 sn", k: true, s: 90, o: "yıldız mantığına göre ilerle", c: "bu el yerinde Kal" },
+    9: { m: "SESSİZ SİNEMA : sessiz bir şekilde anlat, süre 90 sn", k: true, s: 90, o: "anlattığın kadar İleri", c: "bu el yerinde Kal" },
+    10: { m: "SESSİZ SİNEMA : Resmi, sessiz bir şekilde anlat. yıldız mantığı geçerli. süre 90 sn ", k: true, s: 90, o: "yıldız mantığına göre ilerle", c: "bu el yerinde Kal" },
+    11: { m: "RESMİ ANLAT : sessiz bir şekilde ", k: true, s: 90, o: "Yıldız mantığına göre ilerle", c: "bu el yerinde Kal" },
+    12: { m: "RESMİ ANLAT: sessiz bir şekilde ", k: true, s: 90, o: "Yıldız mantığına göre ilerle", c: "bu el yerinde Kal" },
+    13: { m: "RESMİ ANLAT sessiz bir şekilde süre 90 sn", k: true, s: 90, o: "anlattığın kadar İleri", c: "bu el yerinde Kal" },
+    14: { m: "RESMİ ANLAT sessiz bir şekilde", k: "sessiz", s: 90, o: "anlattığın kadar ilerle", c: "bu el yerinde Kal" },
+    15: { m: "ÇİZEREK ANLAT : resmi çizerek konuşmadan anlat süre 90 sn", k: true, s: 90, o: "anlattığın kadar İleri", c: "bu el yerinde Kal" },
+
+    /* --- KUTUDAN BUL BÖLÜMLERİ --- */
+    16: { m: "KUTUDAN BUL : Resimdeki hayvanı kutu üzerinden bul süre 45 sn", k: "kutudan_bul", s: 45, o: "Zar At ve İlerle", c: "bu el yerinde Kal" },
+    17: { m: "KUTUDAN BUL : Resimdeki hayvanı kutu üzerinde bul süre 45 sn", k: "kutudan_bul", s: 45, o: "Zar at ve ilerle", c: "bu el yerinde Kal" },
+
+    /* --- DİĞER TÜM GÖREVLER (AKTİVİTE, OYUN, TAKLİT) --- */
+    18: { m: "ÇİZEREK ANLAT : resmi çizerek konuşmadan anlat süre 90 sn", k: true, s: 90, o: "anlattığın kadar İleri", c: "bu el yerinde Kal"  },
+    19: { m: "ÇİZEREK ANLAT : resmi çizerek konuşmadan anlat süre 90 sn", k: true, s: 90, o: "anlattığın kadar İleri", c: "bu el yerinde Kal"  },
+    20: { m: "ÇİZEREK ANLAT : resmi çizerek konuşmadan anlat süre 90 sn", k: true, s: 90, o: "anlattığın kadar İleri", c: "bu el yerinde Kal"  },
+    21: { m: "TEKERLEME SÖYLE : 'bir berber, bir berbere, bire berber, gel beraber, bir berber dükkanı açalım demiş' doğru söylersen ilerlersin ", k: false, s: 60, o: "1 İleri", c: "1 Geri" },
+    22: { m: "odadan yada bulunduğunuz ortamdan, dışarı çık ve diğer oyuncular, bir şeyin yerini değiştirsinler, ne olduğunu bilmeye çalış", k: false, s: 45, o: "1 İleri", c: "1 geri" },
+    23: { m: "GÖZÜNÜ KIRPMADAN 15 SANİYE BEKLE", k: false, s: 15, o: "1 İleri", c: "bu el yerinde Kal"  },
+    24: { m: "BİR ŞARKI SÖYLE: Bildiğin bir şarkıyı sadece miyav miyav diyerek kedi gibi söyle, şarkıyı tahmin eden ilk kişi 1 ilerler  ", k: false, s: 30, o: "1 İleri", c: "bu el yerinde Kal" },
+    25: { m: "MASADAKİ HER KİŞİYE, BİR İLTİFAT et", k: false, s: 30, o: "1 İleri", c: "bu el yerinde Kal" },
+    26: { m: "SAKLAMBAÇ OYNA : Gözlerini kapat ve diğer oyuncuların saklanmaları için 30 saniye boyunca bekle ilk bulacağın oyuncu 1 geri gider. Kimseyi bulamazsan, gelecek el tekrar dene  ", k: false, s: 60, o: "1 İleri", c: "bu el yerinde Kal" },
+    27: { m: "DİĞER OYUNCULARI GÜLDÜRMEYE ÇALIŞ", k: false, s: 30, o: "güldürdüğün kişi kadar İleri", c: "her oyuncuya bir şey ikram et ve 1 ilerle" },
+    28: { m: "GERİYE DOĞRU 10 ADIM AT", k: false, s: 30, o: "1 İleri", c: "bu el yerinde Kal" },
+    29: { m: "TEK AYAK ÜSTÜNDE 30 sn DUR", k: false, s: 30, o: "1 İleri", c: "bu el yerinde Kal"   },
+    30: { m: "10'DAN GERİYE DOĞRU SAY, yada, diğer oyunculardan gelicek bir toplama işleminin sonucunu söyle", k: false, s: 20, o: "1 İleri", c: "1 geri" },
+    31: { m: "başına bir kitap koy ve odanın sonuna kadar düşürmeden yürümeye çalış", k: false, s: 60, o: "1 İleri", c: "bu el yerinde Kal yada, masadaki oyunculara bir şey ikram et 1 ilerle" },
+    32: { m: "KOLUNDA BULUNAN DİRSEK BÖLÜMÜNÜN, EN UÇ KISMINI ÖPMEYE ÇALIŞ", k: false, s: 20, o: "1 İleri ", c: "bir hayvan taklidi yada bir şarkı söyle 1 ilerle" },
+    33: { m: "KÖR EBE OYUNU: bir bez yada kıyafet yardımıyla, gözlerini kapat ve süre boyunca, birini yakalamaya çalış, ilk yakaladığın kişi 1 geri gider. kimseyi yakalayamazsan, gelecek tur tekrar dene", k: false, s: 60, o: "1 İleri", c: "bu el yerinde Kal" },
+    34: { m: "DENGE TESTİ : Elini yere dokunur vaziyette 5 tur kendi etrafında dön ve odanın sonuna kadar düz bir çizgide yürümeye çalış", k: false, s: 30, o: "1 İleri", c: "bu el yerinde Kal" },
+    35: { m: "PARMAK OYUNU OYNA: masadaki en geride olan kişiyle parmak güreşi yap kazanan ilerlesin. 45 sn boyunca kim daha fazla kazanırsa, o ilerler.", k: false, r: "parmakoyunu", s: 45, o: "1 İleri", c: "2 geri"},
+    36: { m: "masadakilerin sırtına her seferinde farklı 1 sayı çiz bilen kişi kadar ilerle, bilen kişiler de 1 ilerler", k: false, s: 30, o: "bilen kişi kadar İleri", c: "bu el yerinde Kal" },
+    37: { m: "NESNE BULMA: Diğer oyuncular aralarında belirledikleri bir nesneyi bulunduğunuz ortamda, sıcak veya soğuk diyerek, bulmanı sağlasınlar.", k: false, o: "1 İleri", c: "bu el yerinde Kal, yada, bir hayvan taklidi yaparak 1 ileri gidebilirsin"  },
+    38: { m: "bulunduğun odada 5 adet mavi renkte nesne bul süre 30 saniye", k: false, s: 30, o: "1 İleri", c: "bu el yerinde Kal" },
+    39: { m: "HEYKEL OL: Heykel gibi don diğerleri seni güldürmeye çalışsın gülmeden 30 saniye dayanmaya çalış", k: false, s: 30, o: "1 İleri", c: "bu el yerinde Kal" },
+    40: { m: "BAŞARI KONUŞMASI: oyunu bitirmenin güzelliklerinden bahset, masadakileri de tebrik et", k: false, s: 60, o: "TEBRİKLER OYUNU BİTİRDİNİZ;)", c: "bu el yerinde Kal" } 
+},
+"9-11": {
+    /* --- SESSİZ SİNEMA, ANLAT BAKALIM VE ÇİZEREK ANLAT (ÖNCELİKLİ ANLATMA GRUBU) --- */
+    1: { m: "ANLAT BAKALIM: çıkan kelimeleri , kelimenin kendisini söylemeden, konuşarak anlat  ⭐ ALTIN KURAL : bu kuralı bilmiyorsanız kutuyu açtığınızda sizi karşılayan keşif rehberinin ikinci maddesini okuyunuz. ", k: true, s: 60, o: "yıldız mantığına göre ilerle", c: "bu el yerinde Kal" },
+    2: { m: "ANLAT BAKALIM: yıldız mantığı geçerlidir.", k: true, s: 60, o: "yıldız mantığına göre ilerle", c: "bu el yerinde Kal" },
+    3: { m: "ANLAT BAKALIM: yıldız mantığı geçerlidir.", k: true, s: 60, o: "yıldız mantığına göre ilerle", c: "bu el yerinde Kal" },
+    4: { m: "ÇİZEREK ANLAT : çıkan kelimeleri konuşmadan çizerek anlat. yıldız mantığı geçerlidir", k: "ciz", s: 90, o: "yıldız mantığına göre ilerle", c: "bu el yerinde Kal"},
+    5: { m: "ANLAT BAKALIM: yıldız mantığı geçerlidir.", k: true, s: 60, o: "yıldız mantığına göre ilerle", c: "bu el yerinde Kal" },
+    6: { m: "ANLAT BAKALIM: yıldız mantığına göre anlat", k: true, s: 60, o: "yıldız mantığına göre ilerle", c: "1 geri" },
+    7: { m: "ANLAT BAKALIM : Yıldız mantığına göre anlat ", k: true, s: 60, o: "yıldız mantığına göre ilerle", c: "2 geri" },
+    8: { m: "ANLAT BAKALIM: yıldız mantığı geçerlidir.", k: true, s: 60, o: "yıldız mantığına göre ilerle", c: "bu el yerinde Kal" },
+    9: { m: "ANLAT BAKALIM: yıldız mantığına göre anlat", k: true, s: 60, o: "yıldız mantığına göre ilerleyin", c: "1 geri" },
+    10: { m: "SESSİZ SİNEMA: Çıkan kelimeleri konuşmadan sessiz bir şekilde anlat. yıldız mantığı geçerlidir.", k: "sessiz", s: 60, o: "yıldız mantığına göre ilerle", c: "1 Geri" },
+    11: { m: "SESSİZ SİNEMA: yıldız mantığı geçerlidir.", k: "sessiz", s: 60, o: "yıldız mantığına göre ilerle", c: "bu el yerinde Kal" },
+    12: { m: "SESSİZ SİNEMA: yıldız mantığı geçerlidir.", k: "sessiz", s: 60, o: "yıldız mantığına göre ilerle", c: "2 geri" },
+    13: { m: "SESSİZ SİNEMA: yıldız mantığına göre anlat", k: "sessiz", s: 60, o: "yıldız mantığına göre ilerle", c: "bu el yerinde Kal" },
+    14: { m: "SESSİZ SİNEMA: yıldız mantığına göre anlat", k: "sessiz", s: 60, o: "yıldız mantığına göre ilerle", c: "bu el yerinde Kal" },
+    15: { m: "SESSİZ SİNEMA: yıldız mantığı geçerlidir.", k: "sessiz", s: 60, o: "yıldız mantığına göre ilerleyin", c: "1 geri" },
+    16: { m: "ÇİZEREK ANLAT : yıldız mantığı geçerlidir", k: "ciz", s: 90, o: "yıldız mantığına göre ilerle", c: "bu el yerinde Kal" },
+
+    /* --- KUTUDAN SÖYLE / BUL BÖLÜMLERİ --- */
+    17: { m: "ÇİZEREK ANLAT : yıldız mantığı geçerlidir", k: "ciz", s: 90, o: "yıldız mantığına göre ilerle", c: "bu el yerinde Kal" },
+    18: { m: "ÇİZEREK ANLAT : yıldız mantığı geçerlidir", k: "ciz", s: 90, o: "yıldız mantığına göre ilerle", c: "bu el yerinde Kal"  },
+    19: { m: "ÇİZEREK ANLAT : yıldız mantığı geçerlidir", k: "ciz", s: 90, o: "yıldız mantığına göre ilerle", c: "bu el yerinde Kal"  },
+
+    /* --- DİĞER TÜM GÖREVLER (AKTİVİTE, OYUN, TAKLİT) --- */
+    20: { m:  "BİR EV çiz : yazı yazmadığın elinle,( ters elinle ), kağıda bir ev çiz", k: false, s: 60, o: "1 ileri", c: "1 geri"    },
+    21: { m: "KULAKTAN KULAĞA: yönlendirmemizle kutudan bulacağın cümle yi sağındaki kişinin kulağına söyle, aynı şekilde devam etsin, son kişi sesli bir şekilde doğru cümleyi söylerse, başarılı sayılırsın", k: "kutudan_soyle", s: 45, o: "Zar at ve ilerle", c: "1 Geri."  },
+    22: { m: "KUTUDAN SÖYLE : Yönlendirmemizle kutudan bulacağın cümlenin, ilk harfiyle başlayan, 5 tane kelime söyle", k: "kutudan_soyle", s: 30, o: "Zar at ve ilerle", c: "masadakilere bir şey ikram et ve 1 ilerle"  },
+    23: { m:"KUTUDAN BUL: resimdeki hayvanı kutudan bul süre 45 sn", k: "kutudan_bul", s: 45, o: "1 ileri", c: "1 Geri"  },
+    24: { m: "HAFIZA TESTİ: MASADAKİ DEĞİŞEN nesneyi BUL: masaya 5 tane nesne konulsun ve sen gözlerini kapat yada ortamdan uzaklaş sonra iki nesneyi birbiriyle yer değiştirsinler, geldiğinde ne olduğunu bulmaya çalış.", k: false, s: 30, o: "1 İleri", c: "bu el yerinde Kal" },
+    25: { m: "ZAMAN TAHMİNİ: birisi kronometreyi açsın, ve sen bakmadan tam 30 saniyeye denk gelicek şekilde dur de, 1 sn eksik yada fazla olabilir. diğer durumlarda başarısız sayılırsın.", k: false, o: "2 İleri", c: "1 Geri" },
+    26: { m:"GÖZLERİNİ BAĞLA : sana verilen nesnenin ne olduğunu bilmeye çalış.", k: false, s: 60, o: "1 İleri", c: "2 geri"  },
+    27: { m: "MASADAKİ HER OYUNCU İÇİN AYRI AYRI ; (İYİ Kİ VARSIN ÇÜNKÜ....), şeklinde her kişi için, bir cümle kur.", k: false, o: "1 İleri", c: "1 geri" },
+    28: { m: "TEKERLEME: 'Şu köşe yaz köşesi, şu köşe kış köşesi, ortada su şişesi' (20 sn içinde 3 kez)", k: false, s: 20, o: "1 İleri", c: "1 geri"  },
+    29: { m:"ŞARKI SÖYLE: Masadakilerin seçeceği bir şarkıyı, sadece (lay la la lay lay), diyerek söyle", k: false, s: 30, o: "1 İleri", c: "bu el yerinde Kal"  },
+    30: { m: "ÇİZGİ ÜZERİNDE GÖZLER KAPALI 10 ADIM AT", k: false, s: 30, o: "1 İleri", c: "2 geri" },
+    31: { m: "TAŞ KAĞIT MAKAS : Masadaki herkezle bu oyunu oyna 2 yi alan kazanır kim kazanırsa o ilerler", k: false, o: "yendiğin kişi kadar ilerle", c: "1 Geri" },
+    32: { m: "KAFANDA KİTAPLA DÜŞÜRMEDEN TAM TUR AT: bulunduğunuz ortamda, oyun masasının etrafında yada oda boyunca kafandaki kitabı düşürmeden yürü", k: false, s: 45, o: "1 İleri", c: "1 geri" },
+    33: { m: "PARMAK OYUNU OYNA: masadaki en geride olan kişiyle parmak güreşi yap kazanan ilerlesin. 45 sn boyunca kim daha fazla kazanırsa, o ilerler.", k: false, r: "parmakoyunu", s: 45, o: "1 İleri", c: "2 geri" },
+    34: { m: "ARKADAŞIN SIRTINA HARF/SAYI YAZ: masadaki oyuncuların sırtına bir harf yada sayı yaz, bilen kişi kadar ilerle, bilen kişide 1 ilerler", k: false, s: 30, o: "bilen kişi kadar İleri", c: "1 geri" },
+    35: { m: "DONMA MODU: masadaki herkez süre başlatılınca donsun ilk gülen veya hareket eden hariç herkez ilerler.", k: false, s: 45, o: "1 İleri", c: "1 geri" },
+    36: { m: "AYNA TAKLİDİ: oyundaki en ileride olan kişinin 30 sn ye taklidini yap, taklidini yapacağın kişi, seni biraz zorlasın ", k: false, s: 30, o: "1 İleri", c: "1 geri" },
+    37: { m: "HAYAL ANLAT: Sürekli düşündüğün, bir hayalini anlat.", k: false, s: 45, o: "1 İleri", c: "1 Geri" },
+    38: { m: "KÖR EBE: Bir bez yada kıyafet yardımıyla gözlerini kapatılsın ve birini yakalamaya çalış yakaladığın kişi 1 geri gider yakalarsan 1 ilerlersin", k: false, s: 60, o: "1 İleri", c: "bu el yerinde Kal" },
+    39: { m: "SAKLAMBAÇ: Gözlerini kapat ve 30 a kadar say ebeleme yeri, oyun masası, ilk yakalanan 1 geri gider 45 sn ye de en az birini ebelemen lazım", k: false, s: 45, o: "1 İleri", c: "bu el yerinde Kal" },
+    40: { m: "BAŞARI KONUŞMASI: Çok ciddi bir şekilde, bir kupa kazanmış gibi, bir konuşma yap", k: false, s: 60, o: "TEBRİKLER BAŞARIYLA BİTİRDİNİZ", c: "2 Geri" }
+},
+"12-15": {
+    /* --- SESSİZ SİNEMA, ANLAT BAKALIM VE ÇİZEREK ANLAT (ÖNCELİKLİ ANLATMA GRUBU) --- */
+    1: { m: "ANLAT BAKALIM: çıkan kelimeleri konuşarak anlat, ⭐ ALTIN KURAL : bu kuralı bilmiyorsanız kutuyu açtığınızda sizi karşılayan keşif rehberinin ikinci maddesini okuyunuz. ", k: true, s: 60, o: "yıldız mantığına göre ilerle", c: "bu el yerinde Kal" },
+    2: { m: "ANLAT BAKALIM: yıldız mantığına göre anlat", k: true, s: 60, o: "yıldız mantığına göre ilerleyin", c: "bu el yerinde Kal" },
+    3: { m: "ANLAT BAKALIM: yıldız mantığına göre anlat", k: true, s: 60, o: "yıldız mantığına göre ilerleyin", c: "bu el yerinde Kal" },
+    4: { m: "ANLAT BAKALIM: yıldız mantığına göre anlat.", k: true, s: 60, o: "yıldız mantığına göre ilerleyin", c: "1 geri" },
+    5: { m: "ÇİZEREK ANLAT: konuşmadan, bir kalem kağıt yardımıyla, çizerek anlat. yıldız mantığı geçerlidir.", k: "ciz", s: 60, o: "yıldız mantığına göre ilerle", c: "bu el yerinde Kal" },
+    6: { m: "ANLAT BAKALIM: yıldız mantığına göre anlat", k: true, s: 60, o: "yıldız mantığına göre ilerle", c: "bu el yerinde Kal" },
+    7: { m: "ANLAT BAKALIM: yıldız mantığına göre anlat", k: true, s: 60, o: "yıldız mantığına göre ilerleyin", c: "bu el yerinde Kal" },
+    8: { m: "SESSİZ SİNEMA: konuşmadan sessiz bir şekilde, yıldız mantığına göre anlat. eğer anlattığın bir filimse, yerli mi yabancı mı, kaç kelime olduğunu, söyleyebilirsin. diğer durumlarda konuşmak yasak.bu kural sessiz sinema oyunlarında geçerlidir.", k: "sessiz", s: 60, o: "yıldız mantığına göre ilerleyin", c: "1 Geri" },
+    9: { m: "SESSİZ SİNEMA: yıldız mantığına göre anlat", k: "sessiz", s: 60, o: "yıldız mantığına göre ilerle", c: "1 geri" },
+    10: { m: "SESSİZ SİNEMA: yıldız mantığına göre anlat", k: "sessiz", s: 60, o: "yıldız mantığına göre ilerleyin", c: "1 Geri" },
+    11: { m:"SESSİZ SİNEMA: yıldız mantığına göre anlat", k: "sessiz", s: 60, o: "yıldız mantığına göre ilerle", c: "1 geri"  },
+    12: { m: "SESSİZ SİNEMA: Yıldız mantığına göre anlat", k: "sessiz", s: 60, o: "yıldız mantığına göre ilerleyin", c: "bu el yerinde Kal" },
+    13: { m: "SESSİZ SİNEMA: yıldız mantığına göre anlatın", k: "sessiz", s: 60, o: "yıldız mantığına göre ilerleyin", c: "bu el yerinde Kal" },
+    14: { m: "SESSİZ SİNEMA: yıldız mantığına göre anlat", k: "sessiz", s: 60, o: "yıldız mantığına göre ilerleyin", c: "bu el yerinde Kal" },
+    15: { m: "SESSİZ SİNEMA: Yıldız mantığı geçerlidir.", k: "sessiz", s: 60, o: "yıldız mantığına göre ilerle", c: "bu el yerinde Kal" },
+    16: { m: "ÇİZEREK ANLAT: yıldız mantığı geçerlidir.", k: "ciz", s: 60, o: "yıldız mantığına göre ilerle", c: "bu el yerinde Kal" },
+    17: { m: "ÇİZEREK ANLAT: yıldız mantığı geçerlidir.", k: "ciz", s: 60, o: "yıldız mantığına göre ilerle", c: "bu el yerinde Kal"   },
+
+    /* --- KUTUDAN SÖYLE BÖLÜMLERİ --- */
+    18: { m: "ÇİZEREK ANLAT: yıldız mantığı geçerlidir.", k: "ciz", s: 60, o: "yıldız mantığına göre ilerle", c: "bu el yerinde Kal"  },
+    19: { m: "ÇİZEREK ANLAT: yıldız mantığı geçerlidir.", k: "ciz", s: 60, o: "yıldız mantığına göre ilerle", c: "bu el yerinde Kal"   },
+    20: { m: "ÇİZEREK ANLAT : Sana gelicek kelimelerden en az 1 tanesini, TERS elinle çizerek anlatmaya çalış ", k: "ciz", s: 60, o: "1 İleri", c: "2 geri" },
+
+    /* --- DİĞER TÜM GÖREVLER (MEYDAN OKUMA, AKTİVİTE, EĞLENCE) --- */
+    21: { m: "KUTUDAN SÖYLE: Yönlendirmeye göre kutudan bulacağın cümlenin ilk harfiyle başlayan, 30 sn içinde 3 il veya ilçe ve 1 tanede ülke söyle.", k: "kutudan_soyle", s: 30, o: "Zar at ve İlerle", c: "Gelecek El tekrar dene" },
+    22: { m:  "KULAKTAN KULAĞA: yönlendirmemizle kutudan bulacağın cümle yi sağındaki kişinin kulağına söyle, aynı şekilde devam etsin, son kişi sesli bir şekilde doğru cümleyi söylerse, başarılı sayılırsın", k: "kutudan_soyle", s: 45, o: "Zar at ve ilerle", c: "1 Geri." },
+    23: { m: "TAŞ KAĞIT MAKAS: Masadaki her kişiyle, taş kağıt makas oyna, 2 yi alan kazanır. Yendiğin kişi kadar ilerle. Yenilirsen rakibin 1 ilerler.", k: false, s: 45, o: "Galibiyet Kadar ilerle", c: "2 geri" },
+    24: { m: "GÖZÜ KAPALI TAHMİN: Masadaki 4 nesneyi dokunarak bil. en az 3 tanesini bilirsen başarılı sayılırsın", k: false, s: 30, o: "1 ileri", c: "1 geri" },
+    25: { m: "Z'DEN GERİYE ALFABE: 30 saniyede say. Her 5 harf için 1 kare ilerle.", k: false, s: 30, o: "Her 5 Harf +1", c: "Gelecek El Tekrar" },
+    26: { m: "PAZARLAMA DEHASI: Şu an bulunduğunuz ortamda bulunan, ortak kararla seçilecek bir nesneyi, gruba pazarla, ikna edici olursan başarılı sayılırsın. ", k: false, s: 30, o: "1 İleri", c: "1 Geri" },
+    27: { m: "DENGE TESTİ: Bir bacağın havadayken, havada olan bacağının altından, elini geçirip burnunu tut, süre boyunca düşme.", k: false, s: 15, o: "1 İleri", c: "Şarkı/Taklit ile 1 İleri" },
+    28: { m: "DİL OYUNU: Çay nasıl demlenir? bunu, anlat ama her kelimenin sonuna  '-ca, -ce' ekle. eğer 3 hatadan fazla hatan olursa başarısız sayılırsın ", k: false, s: 45, o: "1 İleri", c: "masadakilere bir şey ikram et ve 1 ilerle, yada gelecek tur tekrar dene" },
+    29: { m:"TELEFON REHBERİ: Rehberdeki (S) harfiyle başlayan herhangibir, kişiye 'Ben aslında bir uzaylıyım' mesajı at.", k: false, o: "1 ileri", c: "1 Geri, yada masadakilere, bir şey ikram et ve 1 ilerle" },
+    30: { m: "GÜLME MEYDAN OKUMASI: 1 dakika boyunca kimse seni güldürememeli! ", k: false, s: 60, o: "1 İleri", c: "Şarkı/Taklit ile 1 İleri, yada gelicek tur bir daha dene."  },
+    31: { m: "AYNA MODU: en gerideki oyuncunun hareketlerini 30 saniye boyunca taklit et.en gerideki oyuncu seni zorlasın biraz", k: false, s: 30, o: "1 İleri", c: "1 Geri" },
+    32: { m: "50 den geriye 3'er 3'er say. Hata yaparsan 1 geri.", k: false, s: 30, o: "1 İleri", c: "1 Geri" },
+    33: { m: "SIRTA YAZIM: Herkes sırtına bir kelime yazsın. Bildiğin kadar ilerle, bildiğin kişi de +1 ilerlesin.", k: false, o: "Bildiğin Kadar ilerle", c: "bu el yerinde Kal" },
+    34: { m: "DUYGU KARMAŞASI: Menemen tarifi anlat ama verilen komutlarla anlatma şeklini değiştir örneğin gülerek anlat, ağlayarak anlat, heyecanlı anlat gibi", k: false, s: 45, o: "1 İleri", c: "Şarkı/Taklit veya 1 Geri"  },
+    35: { m: "RÖPORTAJ MODU: Sana sorulan saçma sorulara ,(son kitabınızda yada filminizde ne anlatmak istediniz gibi sorulara), ciddi bir şekilde bir ünlü gibi cevaplar ver ikna edici olursan başarılı sayılırsın", k: false, s: 45, o: "1 İleri", c: "1 geri" },
+    36: { m: "TEK AYAK ÜSTÜNDE GÖZLERİN KAPALI 20 SANİYE DUR, VE HER 5 SANİYEDE BİR, parmak şıklat ", k: false, s: 20, o: "1 İleri", c: "1 Geri" },
+    37: { m: "3 GERÇEK 1 YALAN : Kendinle alakalı 4 şey söyle 1 tanesi yalan olsun, herkezin ortak kararına göre, yalan tahmin edilirse, başarısız sayılırsın,", k: false, o: "1 İleri", c: "1 geri" },
+    38: { m: "MARKA SAY: Şu an ortamda bulunan 5 tane marka say süre 20 sn", k: false, s: 20, o: "1 İleri", c: "1 Geri" },
+    39: { m: "KÖR EBE MODU : Gözlerini bir bez yada kıyafet yardımıyla kapat, diğer oyuncular yerlerini aldığında, süre başlatılsın, en az birini yakalaman lazım", k: false, o: "1 İleri", c: "1 geri"   },
+ 40: { m: "BAŞARI KONUŞMASI: Bir siyasetçi modunda, ciddi bir şekilde, sanki seçimleri kazanmış gibi, bir başarı konuşması yap", k: false, s: 30, o: "TEBRİKLER BAŞARIYLA BİTİRDİNİZ", c: "1 Geri" }
+},
+"4-5": {
+    /* --- ANLATMA GRUBU (BU NEDİR? - KONUŞARAK, SESSİZ, ÇİZEREK) --- */
+    1: { m: "BU NEDİR?: ANLAT BAKALIM : resimdekinin ismini söylemeden anlat. bu tarz sorularda yıldız mantığına göre anlatılır ve o şekilde ilerlenir anlattığın kadar ilerlersin ve bilen kişiler de bildiği kadar ilerler. ", k: true, s: 90, o: "Yıldız mantığına göre ilerleyin", c: "bu el yerinde Kal" },
+    2: { m: "BU NEDİR?: ANLAT BAKALIM : resimdekini ismini söylemeden, yıldız mantığına göre anlat", k: true, s: 90, o: "yıldız mantığına göre ilerleyin", c: "bu el yerinde Kal" },
+    3: { m: "BU NEDİR? ANLAT BAKALIM : Resimdekini ismini söylemeden, yıldız mantığına göre anlat ", k: true, s: 90, o: "yıldız mantığına göre ilerleyin", c: "bu el yerinde Kal" },
+    4: { m: "BU NEDİR?: ANLAT BAKALIM : Resimdekinin ismini söylemeden, yıldız mantığına göre anlat", k: true, s: 90, o: "Yıldız mantığına göre ilerleyin", c: "bu el yerinde Kal" },
+    5: { m: "BU NEDİR?: ANLAT BAKALIM : Resimdekini ismini söylemeden, yıldız mantığına göre anlat.", k: true, s: 90, o: "Yıldız mantığına göre ilerle", c: "bu el yerinde Kal" },
+    6: { m: "BU NEDİR?: ANLAT BAKALIM : resimdekinin ismini söylemeden, yıldız mantığına göre anlat.", k: true, s: 90, o: "yıldız mantığına göre ilerleyin", c: "bu el yerinde Kal" },
+    7: { m: "BU NEDİR?: ANLAT BAKALIM : Resimdekinin ismini söylemeden, yıldız mantığına göre anlat", k: true, s: 90, o: "yıldız mantığına göre ilerle", c: "bu el yerinde Kal" },
+    8: { m: "BU NEDİR? : ANLAT BAKALIM : çıkan resmin ismini söylemeden anlat, yıldız mantığı geçerlidir.", k: true, s: 90, o: "yıldız mantığına göre ilerle", c: "bu el yerinde Kal" },
+    9: { m: "BU NEDİR? : SESSİZ SİNEMA : resimdekini konuşmadan, sessiz bir şekilde, sadece hareketlerinle, yıldız mantığına göre anlat ", k: true, s: 90, o: "yıldız mantığına göre ilerle", c: "bu el yerinde Kal" },
+    10: { m: "BU NEDİR? : SESSİZ SİNEMA :  resimdekini konuşmadan, sessiz bir şekilde yıldız mantığına göre anlat ", k: true, s: 90, o: "yıldız mantığına göre ilerle", c: "bu el yerinde Kal" },
+    11: { m: "BU NEDİR? : SESSİZ SİNEMA :  resimdekini konuşmadan , sessiz bir şekilde, yıldız mantığına göre anlat ", k: true, s: 90, o: "yıldız mantığına göre ilerle", c: "bu el yerinde Kal" },
+    12: { m: "BU NEDİR: SESSİZ SİNEMA :  Çıkan resimleri konuşmadan , sessiz bir şekilde, yıldız mantığına göre anlat", k: true, s: 90, o: "yıldız mantığına göre ilerle", c: "bu el yerinde Kal" },
+    13: { m: "BU NEDİR: SESSİZ SİNEMA :  Çıkan resimleri konuşmadan anlat. yıldız mantığı geçerlidir", k: true, s: 90, o: "yıldız mantığına göre ilerle", c: "bu el yerinde Kal" },
+    14: { m: "BU NEDİR?: SESSİZ SİNEMA :  resmi konuşmadan anlat , yıldız mantığına göre ilerle ", k: true, s: 90, o: "Yıldız mantığına göre ilerle", c: "bu el yerinde Kal" },
+    15: { m: "BU NEDİR?: ÇİZEREK ANLAT : resimdekini bir kalem kağıt yardımıyla, ÇİZEREK, yıldız mantığına göre anlat", k: true, s: 90, o: "yıldız mantığına göre ilerle", c: "1 geri" },
+    16: { m: "BU NEDİR? : ÇİZEREK ANLAT: resimdekini ÇİZEREK, yıldız mantığına göre anlat", k: true, s: 90, o: "yıldız mantığına göre ilerle", c: "bu el yerinde Kal, yada bir hayvan taklidi yaparak ilerle" },
+
+    /* --- KUTUDAN BUL GRUBU --- */
+    17: { m: "KUTUDAN BUL: resimdeki hayvanı kutu üzerinde bul süre 45 sn", k: "kutudan_bul", s: 45, o: "Zar at ve ilerle", c: "bu el yerinde Kal" },
+    18: { m: "KUTUDAN BUL: resimdeki hayvanı kutu üzerinde bul süre 45 sn ", k: "kutudan_bul", s: 45, o: "Zar at ve ilerle", c: "bu el yerinde Kal" },
+
+    /* --- AKTİVİTE VE EĞLENCE GRUBU --- */
+    19: { m: "KUTUDAN BUL: resimdeki hayvanı kutu üzerinde bul süre 45 sn ", k: "kutudan_bul", s: 45, o: "Zar at ve ilerle", c: "bu el yerinde Kal" },
+    20: { m:"BU NEDİR?: ANLAT BAKALIM : resimdekini ismini söylemeden, yıldız mantığına göre anlat", k: true, s: 90, o: "yıldız mantığına göre ilerleyin", c: "bu el yerinde Kal"  },
+    21: { m:"BU NEDİR?: ANLAT BAKALIM : resimdekini ismini söylemeden, yıldız mantığına göre anlat", k: true, s: 90, o: "yıldız mantığına göre ilerleyin", c: "bu el yerinde Kal"  },
+    22: { m: "BU NEDİR?: ANLAT BAKALIM : resimdekini ismini söylemeden, yıldız mantığına göre anlat", k: true, s: 90, o: "yıldız mantığına göre ilerleyin", c: "bu el yerinde Kal" },
+    23: { m:"GÖZLERİNİ KAPAT VE BURNUNU BUL", k: false, s: 20, o: "1 İleri", c: "bu el yerinde Kal"    },
+    24: { m: "1 den 10 a kadar say ve her sayıdan sonra kendi adını söyle", k: false, s: 30, o: "1 ileri", c: "1 geri" },
+    25: { m: "NESNE BUL: Odadaki veya bulunduğunuz ortamdaki mavi renkte 2 adet nesne bul", k: false, s: 60, o: "1 İleri", c: "bir hayvan taklidi yap ve 1 ilerle, yada bu el yerinde kal" },
+    26: { m: "TEK AYAK ÜSTÜNDE DURABİLİR MİSİN? süre bitene kadar, düşmemeye çalış", k: false, s: 30, o: "1 İleri", c: "1 geri" },
+    27: { m: "PARMAK GÜREŞİ: Masadaki en büyük kişi ile parmak güreşi yap. süre bitinceye kadar kim daha fazla yenerse, o kazanır. kazanan kişi 1 ilerler", k: false, r: "parmakoyunu", s: 30, o: "1 İleri", c: "1 geri" },
+    28: { m: "HEYKEL OL : Sen söylediğin anda, herkez heykel gibi donup kalsın. ilk gülen yada hareket eden, 1 geri gider, diğerleri 1 ileri ", k: false, o: "1 İleri", c: "1 geri" },
+    29: { m: "EN SEVDİĞİN OYUNCAĞI ANLAT. VE ONU NEDEN SEVDİĞİNİ SÖYLE ", k: false, s: 30, o: "1 İleri", c: "1 geri" },
+    30: { m: "TAKLİT YAP: herhangibir hayvanın taklidini yap, ama hayvanın ismini söyleme, ilk bilen kişi seninle birlikte 1 ilerler", k: false, s: 30, o: "1 ileri", c: "1 geri" },
+    31: { m: "SAKLAMBAÇ : Gözlerini kapat ve masadakilere saklanmaları için zaman ver. Sonra süreyi başlat, 45 saniye içinde en az birini bulmalısın. yakalanan kişi 1 geri gider  ", k: false, s: 45, o: "1 İleri", c: "bu el yerinde Kal, yada bir hayvan taklidi yaparak 1 ilerle" },
+    32: { m: "UYUMA TAKLİDİ YAP VE HORLAMA SESLERİ ÇIKAR. ", k: false, s: 20, o: "1 İleri", c: "1 geri" },
+    33: { m: "HAYVAN TAKLİDİ: Bir kurbağa gibi yere çömel ve 15 sn boyunca 'Vak vak' diyerek zıpla", k: false, s: 15, o: "1 İleri", c: "bu el yerinde Kal" },
+    34: { m: "AYNA OL: Oyundaki en önde kişinin bir ayna gibi her hareketinin aynısını yapmaya çalış karşıdaki kişi seni biraz zorlasın süre 30 sn", k: false, s: 30, o: "1 İleri", c: "bu el yerinde Kal" },
+    35: { m: "KENDİ ETRAFINDA 3 KERE DÖN  VE HER DÖNÜŞTE 1 KERE ZIPLA ", k: false, s: 30, o: "1 İleri", c: "1 geri"  },
+    36: { m: "ZIPLAYARAK 5'E KADAR SAY", k: false, s: 30, o: "1 İleri", c: "1 geri" },
+    37: { m: "KÖR EBE : Gözlerini bir bez veya kıyafet yardımıyla bağla, ve oyunculardan birini yakalamaya çalış, yakalanan kişi 1 geri gider.", k: false, s: 45, o: "1 İleri", c: "bu el yerinde Kal" },
+    38: { m: "MASADAKİ OYUNCULARA SARIL: Sırayla oyunculara sarıl ve onları çok sevdiğini söyle", k: false, s: 30, o: "1 İleri", c: "1 geri " },
+    39: { m: "UÇAK GİBİ KANATLARINI AÇ VE UÇ", k: false, s: 20, o: "1 İleri", c: "bu el yerinde Kal" },
+    40: { m: "BAŞARI KONUŞMASI.: ciddi bir şekilde, başarılı olabilmenin sebeplerini anlat. Başarılı oldum çünkü ... gibi ", k: false, s: 60, o: " BAŞARIYLA BİTİRDİNİZ", c: "bu el yerinde Kal" }
+}
+};
+
+for (let i = 1; i <= 40; i++) {
+    ["yetiskin", "12-15", "9-11", "6-8", "4-5", "tek_yetiskin"].forEach(yas => {
+        if (!banka[yas]) banka[yas] = {};
+        if (!banka[yas][i]) banka[yas][i] = { m: "ANLAT BAKALIM", k: true, s: 60, o: "2 İleri", c: "Kal" };
+    });
+}
+function kareleriOlustur() {
+    const alan = document.getElementById('oyunAlani');
+
+    if (!alan) {
+        console.error("oyunAlani bulunamadı!");
+        return;
+    }
+
+    alan.innerHTML = "";
+
+    for (let i = 1; i <= 40; i++) {
+        let b = document.createElement('div');
+        b.className = 'kare';
+        b.innerText = i;
+
+        b.onclick = () => panelAc(i);
+
+        alan.appendChild(b);
+    }
+
+    console.log("Kareler oluşturuldu");
+}
+function beepsesi() {
+    beepSesi.currentTime = 0;
+    beepSesi.play();
+} 
+function panelAc(no) {
+    tumSesleriDurdur();
+    const o = oyuncular[sira];
+    
+    const yasSira = ["4-5", "6-8", "9-11", "12-15", "yetiskin"];
+    
+    // Masadaki en küçük ve en büyük yaşları tespit et
+    let enKucukYas = "yetiskin";
+    let enBuyukYas = "4-5";
+    oyuncular.forEach(p => {
+        let pIndex = yasSira.indexOf(p.yas);
+        let currentMinIndex = yasSira.indexOf(enKucukYas);
+        let currentMaxIndex = yasSira.indexOf(enBuyukYas);
+        if(pIndex !== -1 && pIndex < currentMinIndex) enKucukYas = p.yas;
+        if(pIndex !== -1 && pIndex > currentMaxIndex) enBuyukYas = p.yas;
+    });
+
+    // --- YENİ MANTIK: REHBER MODU TESPİTİ ---
+    let enBuyukSayisi = oyuncular.filter(p => p.yas === enBuyukYas).length;
+    let rehberModuAktif = (o.yas === enBuyukYas && enBuyukSayisi === 1 && enBuyukYas !== enKucukYas);
+    
+    let ySayisi = oyuncular.filter(p => p.yas === 'yetiskin').length;
+    let aktifYas = (o.yas === 'yetiskin' && ySayisi < 2) ? "tek_yetiskin" : o.yas;
+
+    // 2. ÖZEL MOD KONTROLLERİ (Eşli Oyun vb.)
+    if (o.yas === 'esli_oyun') {
+        const paketDurumu = localStorage.getItem('esliPaketAktif');
+        if (paketDurumu !== 'true') {
+            document.getElementById('satisEkran').style.display = 'flex';
+            return;
+        }
+    }
+
+    // 3. BANKA KONTROLÜ
+    if (!banka[aktifYas] || !banka[aktifYas][no]) {
+        console.error("Görev bulunamadı! Aktif Yas:", aktifYas, "No:", no);
+        return;
+    }
+
+    aktifVeri = JSON.parse(JSON.stringify(banka[aktifYas][no]));
+    aktifVeri.kareNo = no;
+    mevcutKelimeler = [];
+    mevcutKelimeIndeksi = 0;
+
+    if (!aktifVeri.k) { mevcutKelimeler.push({ k: "", e: "" }); }
+
+    // 4. KELİME HAVUZU MANTIĞI
+    if(aktifVeri.k) {
+        let ek = "";
+        let anaAdet = 2; 
+
+        if(aktifVeri.k === "sessiz") ek = "sessiz_";
+        else if(aktifVeri.k === true ) ek = "";
+        else if(aktifVeri.k === "ciz") ek = "ciz_";
+        else if(aktifVeri.k === "kutudan_soyle") { ek = "kutudan_soyle_"; anaAdet = 1; }
+        else if(aktifVeri.k === "kutudan_bul") { ek = "kutudan_bul_"; anaAdet = 1; }
+
+        let buTurdeSecilenler = [];
+
+        const akilliSecici = (yasGrubu, ekEtiketi) => {
+            let takipAnahtari = "genelOyunTakibi"; 
+            let havuzKey = ekEtiketi + yasGrubu;
+            let tamHavuz = [...(havuzlar[havuzKey] || havuzlar[yasGrubu] || [])];
+            
+            if (!kullanilmisKelimeler[takipAnahtari]) kullanilmisKelimeler[takipAnahtari] = [];
+            
+            let kalanlar = tamHavuz.filter(k => 
+                !kullanilmisKelimeler[takipAnahtari].includes(k) && 
+                !buTurdeSecilenler.includes(k)
+            );
+
+            if (kalanlar.length === 0) {
+                kullanilmisKelimeler[takipAnahtari] = kullanilmisKelimeler[takipAnahtari].filter(k => !tamHavuz.includes(k));
+                kalanlar = tamHavuz.filter(k => !buTurdeSecilenler.includes(k));
+            }
+
+            let secilen = kalanlar[Math.floor(Math.random() * kalanlar.length)];
+            
+            if (secilen) {
+                buTurdeSecilenler.push(secilen);
+                kullanilmisKelimeler[takipAnahtari].push(secilen);
+                localStorage.setItem('kayitliHafiza', JSON.stringify(kullanilmisKelimeler));
+                
+                // --- Eşli oyun (obje) ise metne çevir ---
+                if (typeof secilen === 'object') {
+                    return secilen.k + "\n\n🚫 YASAKLILAR:\n• " + secilen.yasakli.join("\n• ");
+                }
+            }
+            return secilen;
+        };
+
+        // --- ANA KELİMELERİN SEÇİMİ ---
+        if (rehberModuAktif) {
+            let altYaslar = yasSira.filter(y => yasSira.indexOf(y) < yasSira.indexOf(o.yas) && oyuncular.some(p => p.yas === y));
+            for(let i=0; i < anaAdet; i++) {
+                let hGrup = altYaslar[i % altYaslar.length];
+                let k = akilliSecici(hGrup, ek); 
+                if(k) mevcutKelimeler.push({ k: k, e: "", k_yas: hGrup });
+            }
+        } else {
+            for(let i=0; i < anaAdet; i++) {
+                let hGrup = (aktifYas === "tek_yetiskin") ? enKucukYas : o.yas;
+                let k = akilliSecici(hGrup, ek); 
+                if(k) mevcutKelimeler.push({ k: k, e: "", k_yas: hGrup });
+            }
+        }
+
+        // --- 2+1 SİSTEMİ (Yıldızlı Etiket - GÜNCELLENDİ) ---
+        if(anaAdet > 1) {
+            // Eşli oyun modundaysa 3. kelimeyi de 'esli_oyun' havuzundan çek, değilse enKüçükYas'tan çek
+            let hedefHavuz = (o.yas === 'esli_oyun') ? 'esli_oyun' : enKucukYas;
+            
+            let sk = akilliSecici(hedefHavuz, ek);
+            if(sk) {
+                // Eşli oyunda yıldızın yanına (4-5 İÇİN) gibi yazılar yazmasın diye kontrol ekledik
+                let etiketMetni = (o.yas === 'esli_oyun') ? "" : ((yasSira.indexOf(o.yas) > yasSira.indexOf(enKucukYas)) ? ` (${enKucukYas.toUpperCase()} İÇİN)` : "");
+                mevcutKelimeler.push({ k: sk, e: etiketMetni, k_yas: hedefHavuz });
+            }
+        }
+        
+        mevcutKelimeler.sort(() => Math.random() - 0.5);
+    }
+
+    // 5. EKRANIN HAZIRLANMASI
+    document.getElementById('maske').style.display = 'block';
+    document.getElementById('modal').style.display = 'block';
+    document.getElementById('mOyuncu').innerText = o.ad;
+    document.getElementById('mOyuncu').style.color = o.renk;
+    document.getElementById('mGorev').innerText = aktifVeri.m;
+    
+    resetPanel();
+// 🔊 TÜM SORULAR İÇİN SES
+if (aktifVeri.a) {
+
+    tumSesleriDurdur();
+
+    mp3Cal(aktifVeri.a, () => {
+
+        // sadece kelime oyunlarında ikinci ses
+        if (aktifVeri.k) {
+            mp3Cal("komut_teslim");
+        }
+
+    });
+
+} else {
+    sesliOku(o.ad + " senin görevin " + aktifVeri.m);
+}
+if(aktifVeri.k) {
+        // --- GÖRSEL UYARI KISMI ---
+        let eskiUyari = document.getElementById('teslimUyarisi');
+        if(eskiUyari) eskiUyari.remove();
+
+        let uyariDiv = document.createElement('div');
+        uyariDiv.id = "teslimUyarisi";
+        uyariDiv.style = "background:var(--primary); color:white; padding:15px; border-radius:15px; margin:15px 0; font-weight:bold; animation: pulse 1.5s infinite; border: 2px solid rgba(255,255,255,0.2); text-align:center;";
+        uyariDiv.innerHTML = `📱 TELEFONU ${o.ad.toUpperCase()}'E VERİN!`;
+        document.getElementById('mGorev').after(uyariDiv);
+
+        // --- SESLİ AKIŞ ---
+        window.speechSynthesis.cancel(); // Siri'yi sustur
+// 🔥 HER SORUDA SES ÇALSIN
+// 🔊 TÜM SORULAR İÇİN SES
+
+}
+}
+function mp3Cal(dosyaAdi, bittigindeCalistir = null) {
+    if (!dosyaAdi) {
+        if (bittigindeCalistir) bittigindeCalistir();
+        return;
+    }
+
+    // Önce eski sesi kesin öldür
+    if (window.aktifMp3) {
+        window.aktifMp3.pause();
+        window.aktifMp3.currentTime = 0;
+        window.aktifMp3.src = ""; // 🔥 KRİTİK
+    }
+
+    window.aktifMp3 = new Audio(`sesler/${dosyaAdi}.mp3`);
+
+    if (bittigindeCalistir) {
+        window.aktifMp3.onended = bittigindeCalistir;
+    }
+
+    window.aktifMp3.play().catch(err => {
+        console.log("MP3 hatası:", err);
+        if (bittigindeCalistir) bittigindeCalistir();
+    });
+}
+
+function tumSesleriDurdur() {
+    console.log("TÜM SESLER DURDURULDU");
+
+    // 🔊 MP3 durdur
+    if (window.aktifMp3) {
+        window.aktifMp3.pause();
+        window.aktifMp3.currentTime = 0;
+        window.aktifMp3.src = "";
+        window.aktifMp3 = null;
+    }
+ if (beepSesi) {
+        beepSesi.pause();
+        beepSesi.currentTime = 0;}
+    // 🗣️ Speech durdur
+    window.speechSynthesis.cancel();
+}
+function kelimeyiAc() {
+    tumSesleriDurdur();
+    document.getElementById('btnGor').style.display = 'none';
+    document.getElementById('kelime-kutusu').style.display = 'flex';
+    kelimeGuncelle();
+    if(aktifVeri.s < 900) document.getElementById('btnBasla').style.display = 'flex';
+    else document.getElementById('kararGrubu').style.display = 'flex';
+}
+function kelimeGuncelle() {
+    const kKutusu = document.getElementById('kelime-kutusu');
+    const o = oyuncular[sira];
+    let veri = mevcutKelimeler[mevcutKelimeIndeksi];
+    if(!veri) return;
+    
+    let kelime = veri.k || "";
+    let etiket = veri.e || "";
+
+    // --- RESİM İÇİN TEMİZLEME (Alt satırdaki yasaklıları resim ismine dahil etme) ---
+    // Sadece ilk satırı (ana kelimeyi) alıp resim ismine çevirir
+    let anaKelimeMetni = kelime.split("\n")[0]; 
+    let temizKelime = anaKelimeMetni.toLowerCase().trim()
+        .replace(/ğ/g,'g').replace(/ü/g,'u').replace(/ş/g,'s')
+        .replace(/ı/g,'i').replace(/ö/g,'o').replace(/ç/g,'c')
+        .replace(/\s+/g, '');
+    
+    // YILDIZ MANTIĞI
+    let yildizliEtiket = etiket !== "" ? `⭐ ${etiket}` : "";
+
+    // Bankadaki 'y' notunu gösteren kısım
+    let notHtml = aktifVeri.y ? `
+        <div style="background:rgba(245,158,11,0.15); color:#f59e0b; padding:12px; border-radius:15px; margin-top:15px; font-size:0.85rem; border:1px solid rgba(245,158,11,0.3); line-height:1.4;">
+            <strong>📌 NOT:</strong> ${aktifVeri.y}
+        </div>` : "";
+
+    let yetiskinSayisi = oyuncular.filter(p => p.yas === 'yetiskin').length;
+    let isTekYetiskin = (o.yas === 'yetiskin' && yetiskinSayisi < 2);
+    let resimHtml = "";
+
+    // --- RESİM MANTIĞI ---
+    if (aktifVeri && aktifVeri.r && aktifVeri.r.trim() !== "") {
+        const isim = aktifVeri.r.trim();
+        resimHtml = `<div id="resimAlani"><img src="resimler/${isim}.jpeg" onerror="resimDene(this, '${isim}')"></div>`;
+    } 
+
+    else if (aktifVeri.k === "kutudan_bul") {
+        resimHtml = `<div id="resimAlani"><img src="resimler/${anaKelimeMetni.trim()}.jpeg" onerror="resimDene(this, '${anaKelimeMetni.trim()}')"></div>`;
+    }
+    else if ((o.yas === '4-5' || o.yas === '6-8' || isTekYetiskin || (etiket !== "" && (veri.k_yas === '4-5' || veri.k_yas === '6-8'))) && 
+             (aktifVeri.m.includes("BU NEDİR") || aktifVeri.m.includes("RESMİ") || aktifVeri.k === "kutudan_bul" || aktifVeri.k === "sessiz" || aktifVeri.k === "ciz" || aktifVeri.k === "kutudan_soyle" || aktifVeri.k === true)) {
+        
+        resimHtml = `<div id="resimAlani"><img src="resimler/${temizKelime}.jpeg" onerror="resimDene(this, '${temizKelime}')"></div>`;
+    }
+
+    // --- ARAYÜZ AYARLARI ---
+    let asamaGosterim = (mevcutKelimeler.length > 1) ? `AŞAMA ${mevcutKelimeIndeksi+1} / ${mevcutKelimeler.length}` : "";
+    let butonGosterim = (mevcutKelimeler.length > 1) ? "flex" : "none";
+
+    // KUTUYA ALT SATIRLARI TANIMA ÖZELLİĞİ EKLE
+    kKutusu.style.whiteSpace = "pre-line";
+
+    kKutusu.innerHTML = `
+        <div style="font-size:0.7rem; color:var(--info); font-weight:bold; margin-bottom:10px;">${asamaGosterim}</div>
+        ${resimHtml}
+        <div style="font-size:1.8rem; font-weight:900; color:#fff;">
+            ${kelime.toUpperCase()}
+            <span style="font-size:0.9rem; color:var(--info); display:block; margin-top:5px;">${yildizliEtiket}</span>
+        </div>
+        ${notHtml}
+        <div style="display:${butonGosterim}; gap:12px; margin-top:20px; width:100%;">
+            <button onclick="kelimeDegistir(-1)" class="aksiyon" style="background:rgba(255,255,255,0.05); margin:0; flex:1;">⬅️</button>
+            <button onclick="kelimeDegistir(1)" class="aksiyon" style="background:rgba(255,255,255,0.05); margin:0; flex:1;">➡️</button>
+        </div>`;
+}
+function resimDene(img, isim) { 
+    if(img.src.endsWith(".jpeg")) {
+        img.src = "resimler/" + isim + ".jpg"; 
+    } else if(img.src.endsWith(".jpg")) {
+        img.src = "resimler/" + isim + ".png"; 
+    } else { 
+        img.onerror = null; 
+        // Resim bulunamadığında o alanı (div'i) tamamen gizle
+        const parent = img.parentElement;
+        if (parent && parent.id === "resimAlani") {
+            parent.style.display = "none";
+        } else {
+            img.style.display = "none";
+        }
+    } 
+}
+
+function kelimeDegistir(yon) {
+    let yeni = mevcutKelimeIndeksi + yon;
+    if(yeni >= 0 && yeni < mevcutKelimeler.length) {
+        mevcutKelimeIndeksi = yeni;
+        kelimeGuncelle();
+    }
+}
+
+function sayaciBaslat() {
+    const btn = document.getElementById('btnBasla');
+    
+    if (!sayacDurduruldu) {
+        if (zamanlayici) { 
+            // DURAKLATMA (Pause)
+            clearInterval(zamanlayici);
+            zamanlayici = null;
+            sayacDurduruldu = true;
+            window.speechSynthesis.cancel(); 
+            btn.innerText = "DEVAM ET";
+            btn.style.background = "#f59e0b"; // Turuncu/Sarı (Uyarı rengi)
+            return;
+        }
+        kalanSure = aktifVeri.s;
+    }
+
+    // BAŞLATMA VE DEVAM ETTİRME
+    window.speechSynthesis.cancel();
+    sayacDurduruldu = false;
+    btn.innerText = "DURDUR";
+    btn.style.background = "#ef4444"; // Kırmızı (Durdurma ikonu rengi)
+    document.getElementById('kararGrubu').style.display = 'flex';
+
+    zamanlayici = setInterval(() => {
+        kalanSure--;
+        document.getElementById('sayac').innerText = kalanSure;
+        if (kalanSure <= 10 && kalanSure > 0) beepsesi();
+        if (kalanSure <= 0) { 
+            clearInterval(zamanlayici); 
+            zamanlayici = null;
+            sesliOku("Süre bitti!"); 
+            btn.style.display = 'none';
+        }
+    }, 1000);
+}
+
+
+   
+
+function kararVer(basari) {
+
+    tumSesleriDurdur();
+
+    if (basari) {
+        // ✅ BAŞARILI
+        const ses = aktifVeri.basariliSes || "basarili";
+        mp3Cal(ses);
+
+        const odul = aktifVeri.odul || 1;
+        oyuncular[sira].puan += odul;
+
+    } else {
+        // ❌ BAŞARISIZ
+        const ses = aktifVeri.basarisizSes || "basarisiz";
+        mp3Cal(ses);
+
+        const ceza = aktifVeri.ceza || 1;
+        oyuncular[sira].puan -= ceza;
+    }
+
+    // ⬇️ BURASI ORTAK ALAN (if dışında!)
+
+    clearInterval(zamanlayici);
+
+    document.getElementById('kararGrubu').style.display = 'none';
+
+    const sEkran = document.getElementById('sonucEkran');
+    sEkran.style.display = 'block';
+
+    let m = basari 
+        ? "TEBRİKLER! ÖDÜLÜN: " + aktifVeri.o 
+        : "MAALESEF! CEZA OLARAK " + aktifVeri.c;
+
+    sEkran.innerText = m;
+
+    if (m.toLowerCase().includes("zar")) {
+        document.getElementById('zar-konteynir').style.display = 'block';
+    }
+
+    document.getElementById('btnSiradaki').style.display = 'flex';
+
+
+}
+function zarAt() { const s = document.getElementById('zar-sonuc'); s.classList.add('zar-don'); setTimeout(() => { s.classList.remove('zar-don'); let r = Math.floor(Math.random()*6) + 1; const z = ["", "⚀", "⚁", "⚂", "⚃", "⚄", "⚅"]; s.innerText = z[r]; sesliOku(r + " geldi"); }, 800); }
+
+function resetPanel() {
+    tumSesleriDurdur();
+    clearInterval(zamanlayici);
+    zamanlayici = null; // EKLEME 1
+    sayacDurduruldu = false; // EKLEME 2
+    
+    // Buton yazısını sıfırlamak için (Önemli)
+    const btnBasla = document.getElementById('btnBasla');
+    if(btnBasla) btnBasla.innerText = "SÜREYİ BAŞLAT";
+    btnBasla.style.background = "#22c55e"; // İŞTE O YEŞİL RENK (Success Green)
+    document.getElementById('sayac').innerText = "";  
+    document.getElementById('btnGor').style.display = 'flex';
+    document.getElementById('kelime-kutusu').style.display = 'none';
+    document.getElementById('kelime-kutusu').innerHTML = "";
+    document.getElementById('btnBasla').style.display = 'none';
+    document.getElementById('kararGrubu').style.display = 'none';
+    document.getElementById('zar-konteynir').style.display = 'none';
+    document.getElementById('sonucEkran').style.display = 'none';
+    document.getElementById('btnSiradaki').style.display = 'none';
+    document.getElementById('mGorev').style.display = 'block';
+
+    // YENİ EKLEDİĞİMİZ UYARIYI TEMİZLEME:
+    const eskiUyari = document.getElementById('teslimUyarisi');
+    if(eskiUyari) eskiUyari.remove();
+}
+
+function kapatVeGec() {
+    tumSesleriDurdur();
+    window.speechSynthesis.cancel(); document.getElementById('maske').style.display = 'none'; document.getElementById('modal').style.display = 'none'; sira = (sira + 1) % oyuncular.length; siraGuncelle(); resetPanel(); }
+
+function gorevdenCik() { 
+    tumSesleriDurdur();
+    window.speechSynthesis.cancel(); clearInterval(zamanlayici); document.getElementById('maske').style.display = 'none'; document.getElementById('modal').style.display = 'none'; resetPanel(); }
+
+function goreviTekrarla() {
+
+    tumSesleriDurdur();
+ resetPanel();
+    const o = oyuncular[sira];
+
+    
+    // sesi tekrar çal
+      if (aktifVeri && aktifVeri.a) {
+        mp3Cal(aktifVeri.a);
+    }
+
+}
+
+function siraGuncelle() { const b = document.getElementById('aktifSira'); if(oyuncular[sira]) { b.innerText = "SIRA: " + oyuncular[sira].ad; b.style.backgroundColor = oyuncular[sira].renk; b.style.color = "#fff"; } }
+
+
+
+function sesleriHazirla() {
+    const sesler = window.speechSynthesis.getVoices();
+    // Siri'yi ara, bulamazsan Premium sesleri ara, o da yoksa herhangi bir Türkçe ses al
+    siriSesi = sesler.find(s => s.lang.includes('tr') && (s.name.includes('Siri') || s.name.includes('Ses 2'))) || 
+               sesler.find(s => s.lang.includes('tr') && s.name.includes('Premium')) ||
+               sesler.find(s => s.lang.includes('tr'));
+}
+
+// Hem tarayıcı bildirdiğinde hem de her 1 saniyede bir (ilk 5 saniye boyunca) kontrol et
+window.speechSynthesis.onvoiceschanged = sesleriHazirla;
+let kontrolDongusu = setInterval(() => {
+    sesleriHazirla();
+    if (siriSesi) clearInterval(kontrolDongusu); // Siri bulunduysa döngüyü durdur
+}, 1000);
+// MP3 dosyalarını çalmak için yardımcı fonksiyon
+
+
+
+
+function paketiAktiveEt() {
+    const kod = prompt("Lütfen aktivasyon kodunu giriniz:");
+   
+    if (kod === "998877") { // Kendi kodunla değiştir
+        localStorage.setItem('esliPaketAktif', 'true');
+        alert("Tebrikler! Eşli Mod başarıyla aktif edildi.");
+       
+        // Satış ekranını gizle ve sayfayı zorla yenile
+        document.getElementById('satisEkran').style.display = 'none';
+        window.location.reload();
+    } else if (kod !== null) {
+        alert("Hatalı kod!");
+    }
+}
+function oyunuKur() { try { if (typeof kareleriOlustur === "function") kareleriOlustur(); if (typeof siraGuncelle === "function") siraGuncelle(); } catch (hata) { console.log("Hata: " + hata.message); } }
+
+if (document.readyState === 'complete') { 
+    oyunuKur(); 
+} else { 
+    window.addEventListener('load', oyunuKur); 
+}
+
+// Parça 3'ün en sonuna eklenebilir
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    let deferredPrompt = e;
+
+    // Buraya istersen ekrana bir "Uygulamayı İndir" butonu çıkartacak kod yazabiliriz.
+    console.log("Uygulama yüklenmeye hazır!");
+
+    document.addEventListener("click", () => {
+        window.sesAcik = true;
+    }, { once: true });
+
+});
+
+window.addEventListener("DOMContentLoaded", function () {
+
+    const goreviGorBtn = document.getElementById("goreviGorBtn");
+    const kapatBtn = document.getElementById("kapatBtn");
+    const tekrarBtn = document.getElementById("tekrarBtn");
+
+    if (goreviGorBtn) {
+        goreviGorBtn.onclick = function () {
+           tumSesleriDurdur();
+        };
+    }
+
+    if (kapatBtn) {
+        kapatBtn.onclick = function () {
+            tumSesleriDurdur();
+        };
+    }
+
+    if (tekrarBtn) {
+        tekrarBtn.onclick = function () {
+            mp3Cal(aktifVeri.a);
+        };
+    }
+
+
+});
+
+</script>
+</body>
+</html>

@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#e94560">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <title>Akıllı Kutu Oyunu - Lobi</title>
+    <style>
+        :root {
+            --bg: #0f172a; 
+            --card: rgba(30, 41, 59, 0.7); 
+            --text: #f8f9fa;
+            --primary: #e94560; 
+            --accent: #f59e0b;
+        }
+
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+            color: var(--text); 
+            margin: 0; 
+            display: flex; justify-content: center; align-items: center; min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container { 
+            width: 92%; max-width: 450px; background: var(--card); backdrop-filter: blur(20px);
+            padding: 25px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); text-align: center;
+            box-sizing: border-box;
+        }
+
+        /* Oyuncu Bloğu Tasarımı */
+        .oyuncu-satir { 
+            background: rgba(255,255,255,0.05); 
+            padding: 15px; 
+            border-radius: 20px; 
+            margin-bottom: 15px; 
+            border: 1px solid rgba(255,255,255,0.08); 
+            text-align: left;
+            transition: 0.3s;
+        }
+
+        .ad-input, .yas-input { 
+            width: 100%; height: 45px; background: rgba(0,0,0,0.3); 
+            border: 1px solid rgba(255,255,255,0.1); color: white; 
+            padding: 0 15px; border-radius: 12px; font-size: 1rem; 
+            box-sizing: border-box; margin-bottom: 10px;
+        }
+
+        .renk-secici { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; justify-content: space-between; }
+        
+        .renk-topu { 
+            width: 30px; height: 30px; border-radius: 50%; cursor: pointer; 
+            border: 2px solid transparent; transition: 0.2s; position: relative;
+        }
+        
+        .renk-topu.aktif { border-color: white; transform: scale(1.1); box-shadow: 0 0 10px rgba(255,255,255,0.5); }
+
+        .renk-topu.mesgul { 
+            opacity: 0.1; cursor: not-allowed; pointer-events: none; filter: grayscale(1);
+        }
+        .renk-topu.mesgul::after {
+            content: '✕'; position: absolute; inset: 0; display: flex; 
+            align-items: center; justify-content: center; color: white; font-size: 12px;
+        }
+
+        .btn-basla { 
+            background: linear-gradient(135deg, var(--primary), #b91c1c); 
+            color: white; border: none; padding: 18px; border-radius: 20px; 
+            width: 100%; font-size: 1.2rem; font-weight: 900; cursor: pointer; margin-top: 10px;
+            box-shadow: 0 10px 20px rgba(233, 69, 96, 0.3);
+        }
+
+        .btn-ekle {
+            background: none; border: 1px dashed rgba(255,255,255,0.3); color: white;
+            padding: 12px; width: 100%; border-radius: 15px; margin-bottom: 15px; cursor: pointer;
+            font-weight: bold;
+        }
+
+        #kilitCevap {
+            width: 100%; padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(0,0,0,0.3); color: white; text-align: center; margin-bottom: 15px;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="kilitPaneli">
+        <h2 style="color: var(--accent); font-weight: 900; margin-top:0;">AKTİVASYON</h2>
+        <p id="soruMetni" style="font-size: 0.9rem; margin-bottom: 20px; opacity: 0.8;">Yükleniyor...</p>
+        <input type="text" id="kilitCevap" placeholder="Cevabı buraya yaz...">
+        <button class="btn-basla" onclick="kilitKontrol()">KAPAĞI AÇ 🔓</button>
+        <p id="hataMesaji" style="color: var(--primary); font-size: 0.8rem; margin-top: 10px; display: none;">Cevap yanlış! Kutuyu incele.</p>
+    <div style="margin-top: 25px; padding-top: 20px; border-top: 1px dashed rgba(255,255,255,0.2); text-align: center;">
+    <p style="font-size: 0.8rem; opacity: 0.7; margin-bottom: 12px;">Henüz bir kutun yok mu? Oyun içindeki bazı görevler için bu kutuya ihtiyacın var. Bu oyun 4+ yaş her kişinin, en az 2, en fazla 6 oyuncuyla birlikte oynayayabileceği, sürekli gelişmeye açık, zaman zaman yeni paketlerin de yükleneceği, fiyatı sadece <b>1000 TL</b>  olan bir aile oyunudur</p>
+    
+    <a href="https://wa.me/905548147163?text=Merhaba,%20Akıllı%20Kutu%20Oyunu%20siparişi%20vermek%20istiyorum." 
+       target="_blank" style="text-decoration: none;">
+        <button type="button" style="background: linear-gradient(135deg, #25d34b, #d4c713); color: white; border: none; padding: 14px; border-radius: 16px; width: 100%; font-size: 0.95rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 12px;">
+            <span>🛒</span> ŞİMDİ SİPARİŞ VER
+        </button>
+    </a>
+
+    <div onclick="copyIBAN()" id="ibanBox" style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); cursor: pointer; margin-bottom: 12px;">
+        <span style="display: block; font-size: 0.65rem; color: var(--accent); font-weight: 800; margin-bottom: 5px;">HIZLI ÖDEME (IBAN)</span>
+        <span style="display: block; font-size: 0.8rem; color: #fff; font-weight: bold; margin-bottom: 4px;">AKILLI KUTU OYUNU</span>
+        <span id="ibanText" style="font-family: monospace; font-size: 0.85rem; color: #fff;">TR00 0000 0000 0000 0000 0000 00</span>
+        <div id="copyBadge" style="font-size: 0.7rem; opacity: 0.4; margin-top: 5px;">Kopyalamak için dokun</div>
+    </div>
+
+    <a href="https://wa.me/905548147163?text=Merhaba,%20Akıllı%20Kutu%20Oyunu%20ödememi%20yaptım.%20Dekontu%20aşağıya%20ekliyorum%20ve%20kargo%20için%20adres%20bilgilerimi%20paylaşıyorum:" 
+       target="_blank" style="text-decoration: none;">
+        <span style="font-size: 0.75rem; color: #10b981; font-weight: bold; text-decoration: underline;">
+            Ödeme yaptım, dekont ve adres iletmek istiyorum.
+        </span>
+    </a>
+</div>
+    </div>
+
+    <div id="anaIcerik" style="display: none;">
+        <h1 style="margin:0; background: linear-gradient(to right, #fff, var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; font-size: 1.8rem;">AKILLI KUTU OYUNU</h1>
+        <p style="font-size: 0.8rem; opacity: 0.7; margin-bottom: 20px;">OYUNCU EKLE VE BAŞLA</p>
+
+        <div id="oyuncuAlanlari"></div>
+<button id="btnYukle" style="display:none; background: #10b981; color: white; border: none; padding: 12px; border-radius: 15px; width: 100%; font-size: 0.9rem; font-weight: bold; cursor: pointer; margin-bottom: 10px;">
+            📲 UYGULAMAYI TELEFONA İNDİR (ÇEVRİMDIŞI OYNA)
+        </button>
+        <button class="btn-ekle" onclick="oyuncuEkle()">+ YENİ OYUNCU EKLE</button>
+        <button class="btn-basla" onclick="oyunuBaslat()">MACERAYI BAŞLAT 🚀</button>
+    </div>
+</div>
+
+<script>
+    const renkHavuzu = ["#e94560", "#3b82f6", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899"];
+    let oyuncuSayaci = 0;
+
+    // --- KİLİT SİSTEMİ ---
+    const sorular = [
+        { q: "keşif rehberinin 3. maddesinin son kelimesi nedir?", a: "anlat" },
+        { q: "Kutudaki keşif rehberinin 5. maddesinin ilk iki kelimesi nedir?", a: "sesli anlatım" }
+    ];
+    let seciliSoru = sorular[Math.floor(Math.random() * sorular.length)];
+    document.getElementById('soruMetni').innerText = seciliSoru.q;
+// --- SES SİSTEMİ UYANDIRICI (IPAD/IPHONE İÇİN) ---
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+const aktivasyonSesi = new Audio();
+
+function sesMotorunuUyandir() {
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+    // Boş bir sesle sistemi "ısıtıyoruz"
+    aktivasyonSesi.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=";
+    aktivasyonSesi.play().catch(() => {});
+    console.log("Ses motoru lobi aşamasında uyandırıldı.");
+}
+
+// Kullanıcı herhangi bir yere dokunduğu an uyandır
+document.addEventListener('touchstart', sesMotorunuUyandir, { once: true });
+document.addEventListener('click', sesMotorunuUyandir, { once: true });
+    function kilitKontrol() {
+        const cevap = document.getElementById('kilitCevap').value.trim().toLowerCase();
+        if(cevap === seciliSoru.a.toLowerCase()) {
+            document.getElementById('kilitPaneli').style.display = 'none';
+            document.getElementById('anaIcerik').style.display = 'block';
+        } else {
+            document.getElementById('hataMesaji').style.display = 'block';
+        }
+    }
+function copyIBAN() {
+        const iban = document.getElementById('ibanText').innerText;
+        const badge = document.getElementById('copyBadge');
+        navigator.clipboard.writeText(iban).then(() => {
+            const oldText = badge.innerText;
+            badge.innerText = "IBAN Kopyalandı! ✅";
+            badge.style.color = "#10b981";
+            setTimeout(() => {
+                badge.innerText = oldText;
+                badge.style.color = "";
+            }, 2000);
+        });
+    }
+    // --- OYUNCU EKLEME ---
+    function oyuncuEkle() {
+        const alan = document.getElementById('oyuncuAlanlari');
+        if(alan.children.length >= 6) return;
+        
+        oyuncuSayaci++;
+        const id = oyuncuSayaci;
+        const div = document.createElement('div');
+        div.className = 'oyuncu-satir';
+        div.id = `satir-${id}`;
+        
+        // Boşta olan ilk rengi otomatik ata
+        const suanSeciliRenkler = Array.from(document.querySelectorAll('.oyuncu-satir')).map(s => s.dataset.renk);
+        const uygunRenk = renkHavuzu.find(r => !suanSeciliRenkler.includes(r)) || renkHavuzu[0];
+        div.dataset.renk = uygunRenk;
+
+        div.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
+                <span style="font-size:0.75rem; font-weight:800; color: var(--accent);">OYUNCU ${id}</span>
+                <button onclick="this.parentElement.parentElement.remove(); renkleriGuncelle();" 
+                        style="background:none; border:none; color:#ef4444; font-size:0.75rem; font-weight:bold; cursor:pointer;">KALDIR ✖</button>
+            </div>
+            <input type="text" placeholder="İsim yazınız..." class="ad-input">
+            <select class="yas-input">
+                <option value="yetiskin">Yetişkin</option>
+                <option value="12-15">Genç (12-15 Yaş)</option>
+                <option value="9-11">Çocuk (9-11 Yaş)</option>
+                <option value="6-8">Küçük (6-8 Yaş)</option>
+                <option value="4-5">Minik (4-5 Yaş)</option>
+                <option value="esli_oyun" style="background:#f59e0b; color:white;">EŞLİ MOD (KİLİTLİ)</option>
+            </select>
+            <div class="renk-secici">
+                ${renkHavuzu.map(r => `
+                    <div class="renk-topu" 
+                         style="background:${r}" 
+                         data-renk="${r}" 
+                         onclick="renkSec(${id}, '${r}')">
+                    </div>
+                `).join('')}
+            </div>
+        `;
+        alan.appendChild(div);
+        renkleriGuncelle();
+    }
+
+    function renkSec(id, renk) {
+        const satir = document.getElementById(`satir-${id}`);
+        if(!satir) return;
+        satir.dataset.renk = renk;
+        renkleriGuncelle();
+    }
+
+    function renkleriGuncelle() {
+        const satirlar = document.querySelectorAll('.oyuncu-satir');
+        const tumSeciliRenkler = Array.from(satirlar).map(s => s.dataset.renk);
+
+        satirlar.forEach(satir => {
+            const kendiRengi = satir.dataset.renk;
+            const toplar = satir.querySelectorAll('.renk-topu');
+            
+            toplar.forEach(top => {
+                const topRengi = top.dataset.renk;
+                top.className = 'renk-topu';
+                if (topRengi === kendiRengi) top.classList.add('aktif');
+                else if (tumSeciliRenkler.includes(topRengi)) top.classList.add('mesgul');
+            });
+            satir.style.borderLeft = `6px solid ${kendiRengi}`;
+        });
+    }
+
+    function oyunuBaslat() {
+        const satirlar = document.querySelectorAll('.oyuncu-satir');
+        let veriler = [];
+        satirlar.forEach(s => {
+            const ad = s.querySelector('.ad-input').value.trim();
+            if(ad) {
+                veriler.push({
+                    ad: ad,
+                    yas: s.querySelector('.yas-input').value,
+                    renk: s.dataset.renk
+                });
+            }
+        });
+        if(veriler.length < 2) return alert("Lütfen en az 2 oyuncu ismi girin!");
+        localStorage.setItem('oyuncular', JSON.stringify(veriler));
+        window.location.href = 'panel.html';
+    }
+
+    // Başlangıçta 2 oyuncu
+    window.onload = () => { 
+        oyuncuEkle(); 
+        oyuncuEkle(); 
+    };
+    // --- UYGULAMAYI İNDİR (PWA) MANTIĞI ---
+    let deferredPrompt;
+    const btnYukle = document.getElementById('btnYukle');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+        // Tarayıcının varsayılan yükleme ekranını durdur
+        e.preventDefault();
+        // Olayı sakla
+        deferredPrompt = e;
+        // Yükleme butonunu görünür yap
+        if(btnYukle) btnYukle.style.display = 'block';
+
+        btnYukle.addEventListener('click', () => {
+            if(!deferredPrompt) return;
+            // Butonu gizle
+            btnYukle.style.display = 'none';
+            // Yükleme istemini göster
+            deferredPrompt.prompt();
+            // Kullanıcının ne cevap verdiğini takip et
+            deferredPrompt.userChoice.then((choiceResult) => {
+                if (choiceResult.outcome === 'accepted') {
+                    console.log('Kullanıcı uygulamayı yükledi');
+                }
+                deferredPrompt = null;
+            });
+        });
+    });
+
+    // Uygulama zaten yüklüyse butonu gizle
+    window.addEventListener('appinstalled', () => {
+        if(btnYukle) btnYukle.style.display = 'none';
+    });
+</script>
+</body>
+</html>
