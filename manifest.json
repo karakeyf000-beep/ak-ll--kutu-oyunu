@@ -1,0 +1,16 @@
+{
+  "name": "Akýllý Kutu Oyunu",
+  "short_name": "AkýllýOyun",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#e94560",
+  "description": "Ailece oynanan interaktif kutu oyunu paneli.",
+  "icons": [
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
